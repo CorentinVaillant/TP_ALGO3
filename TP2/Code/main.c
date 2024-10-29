@@ -21,6 +21,15 @@ void * unwrapMalloc(size_t size){
 	return result;
 }
 
+void* unwrapPtr(void * ptr){
+	if(!ptr){
+		fprintf(stderr,"pointer is set to NULL");
+		perror("stopping program ");
+		exit(1);
+	}
+	return ptr;
+}
+
 void freeTokenMap(void * v_token, void * set_null_usr_param/* *bool */){
 	ptrToken p_token = (ptrToken) v_token;
 
@@ -157,18 +166,31 @@ Queue * shuntingYard(Queue * infix){
 
 	Queue * copy_infix = create_queue();
 	queue_map(infix,(QueueMapOperator) copyTokenMap,copy_infix);
+	
 
 	while (!queue_empty(copy_infix)){
 		Token *token = (Token *)queue_top(copy_infix);
+		printf("[Debug] dealing with token :");
+		print_token(token,stdout);
+		printf("\n");
+
+
+		unwrapPtr(token);
 
 		if(token_is_number(token)){
 			queue_push(output,token);
 		}
 
-		if(token_is_operator(token)){
+		else if(token_is_operator(token)){
+
 			if (!stack_empty(operators)){
-				
-				for ( Token *top_operator = (Token *)stack_top(operators);
+
+				Token *top_operator = (Token *)stack_top(operators);
+				printf("wsh ---------------------------- --> ");
+				print_token(top_operator,stdout);
+				printf("\n");
+				while (
+					!stack_empty(operators) &&
 					(
 						(
 							//the operator at the top of the stack is not a left bracket 
@@ -195,36 +217,45 @@ Queue * shuntingYard(Queue * infix){
 							) 
 							
 						) 
-					);
-					top_operator = (Token *)stack_top(operators))
+					))
 				{
 					queue_push(output,top_operator);
 					stack_pop(operators);
-					
+					top_operator = (Token *)stack_top(operators);
+					printf("wsh ---------------------------- --> ");
+					print_token(top_operator,stdout); //error here, top_operator is invalid
+					printf("\n");
 				}
+				
 			}
 			stack_push(operators,token);
 		}
 
-		if(token_is_parenthesis(token) && token_parenthesis(token) == '(')
-			stack_push(operators,token);
-		
-		else if(token_is_parenthesis(token) && token_parenthesis(token) == ')' && !stack_empty(operators)){
-			for( Token *top_operator = (Token *)stack_top(operators) ;
-			(
-				!stack_empty(operators) &&
-				token_is_parenthesis(token) && token_parenthesis(token) != '('
-			);
-				top_operator = (Token *)stack_top(operators)
+		else if(token_is_parenthesis(token)){
 
-			){
-				queue_push(output,top_operator);
+			if(token_parenthesis(token) == '(')
+				stack_push(operators,token);
+			
+			else if(token_is_parenthesis(token) && token_parenthesis(token) == ')'){
+				for( Token *top_operator = (Token *)stack_top(operators) ;
+				(
+					!stack_empty(operators) &&
+					token_is_parenthesis(token) && token_parenthesis(token) != '('
+				);
+					top_operator = (Token *)stack_top(operators)
+
+				){
+					queue_push(output,top_operator);
+					stack_pop(operators);
+				}
 				stack_pop(operators);
+
 			}
 			
 		}
-		
 		queue_pop(copy_infix);
+
+		
 	}
 
 	for(Token *top_operator = (Token *)stack_top(operators) ; !stack_empty(operators) ; top_operator = (Token *)stack_top(operators)){
