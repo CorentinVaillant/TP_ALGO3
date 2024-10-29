@@ -1,0 +1,4 @@
+*.out
+*.o
+TP1/Exercice1/documentation/html/*
+TP2/Code/documentation/html/*
