@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-std=c99 -Wextra -Wall -Werror -pedantic -g
+CFLAGS=-std=c99 -Wextra -Wall -Werror -pedantic 
 LDFLAGS=-lm
 
 ECHO = @
@@ -15,7 +15,7 @@ else
 	LDFLAGS +=
 endif
 
-EXEC=expr_ex1
+EXEC=expr_ex1.out
 SRC= $(wildcard *.c)
 OBJ= $(SRC:.c=.o)
 

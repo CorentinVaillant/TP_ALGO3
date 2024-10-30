@@ -1,5 +1,6 @@
 // Need this to use the getline C function on Linux. Works without this on MacOs. Not tested on Windows.
 #define _GNU_SOURCE
+#define DEBUG
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -10,7 +11,17 @@
 #include "queue.h"
 #include "stack.h"
 
+const void * stack_top_or_NULL(const ptrStack s){
+	if(stack_empty(s))
+		return NULL;
+	else 
+		return stack_top(s);
+}
 
+/// @brief make a malloc, and exit if the malloc failed, with an error message
+/// @param size bytes to alloc
+/// @return a successfull maloc
+/// @details work kinda the same as .unwrap() in RUST where alloc memory
 void * unwrapMalloc(size_t size){
 	void * result = malloc(size);
 	if (!result){
@@ -21,6 +32,9 @@ void * unwrapMalloc(size_t size){
 	return result;
 }
 
+/// @brief exit the program with an error message if a ptr is set to NULL
+/// @param ptr a pointer
+/// @return the same pointer, if not set to NULL
 void* unwrapPtr(void * ptr){
 	if(!ptr){
 		fprintf(stderr,"pointer is set to NULL");
@@ -30,6 +44,10 @@ void* unwrapPtr(void * ptr){
 	return ptr;
 }
 
+
+/// @brief free tokens inside a queue, to use with map 
+/// @param v_token the token that will be free
+/// @param set_null_usr_param set fread token to NULL or not
 void freeTokenMap(void * v_token, void * set_null_usr_param/* *bool */){
 	ptrToken p_token = (ptrToken) v_token;
 
@@ -44,12 +62,14 @@ void freeTokenMap(void * v_token, void * set_null_usr_param/* *bool */){
 	
 }
 
-//this is not doing a full copy, this is actually a copy of the pointers to v_token
-void copyTokenMap(void * v_token, void * dest /* *queue*/){
-	Queue * dest_queue = (Queue*) dest;
-	Token * token = (Token*) v_token;
+/// @brief Making a copy of a queue with map
+/// @param p_token the token ptr that is copy
+/// @param dest the queue where the p_token is paste
+/// @attention This is not doing a deep copy of a queue, so if p_token is free the source queue, p_token will be free in the dest_queue too !   
+void copyTokenMap(void * p_token, void * dest){
 
-	queue_push(dest_queue,token);
+	Queue * dest_queue = (Queue*) dest;
+	queue_push(dest_queue,p_token);
 }
 
 bool isSymbole(char c);
@@ -108,6 +128,7 @@ void computeExpressions(FILE* input) {
 	free(buffer);
 }
 
+/// @brief return if c is a symbole
 bool isSymbole(char c){
 	return( 
 		(c == '+')
@@ -119,6 +140,7 @@ bool isSymbole(char c){
 	||	(c == ')'));
 }
 
+/// @brief return if c is a char representing a number
 bool isNum_f(char c){
 	return (c >= '0' && c <= '9') || c == '.';
 }
@@ -160,6 +182,7 @@ Queue * stringToToken(const char* expression){
 }
 
 Queue * shuntingYard(Queue * infix){
+	//TODO tout réecrire !!! :')
 
 	Queue * output = create_queue();
 	Stack * operators = create_stack(queue_size(infix));
@@ -170,12 +193,11 @@ Queue * shuntingYard(Queue * infix){
 
 	while (!queue_empty(copy_infix)){
 		Token *token = (Token *)queue_top(copy_infix);
-		printf("[Debug] dealing with token :");
-		print_token(token,stdout);
-		printf("\n");
 
 
+		#ifdef DEBUG
 		unwrapPtr(token);
+		#endif
 
 		if(token_is_number(token)){
 			queue_push(output,token);
@@ -186,9 +208,6 @@ Queue * shuntingYard(Queue * infix){
 			if (!stack_empty(operators)){
 
 				Token *top_operator = (Token *)stack_top(operators);
-				printf("wsh ---------------------------- --> ");
-				print_token(top_operator,stdout);
-				printf("\n");
 				while (
 					!stack_empty(operators) &&
 					(
@@ -221,10 +240,11 @@ Queue * shuntingYard(Queue * infix){
 				{
 					queue_push(output,top_operator);
 					stack_pop(operators);
-					top_operator = (Token *)stack_top(operators);
-					printf("wsh ---------------------------- --> ");
-					print_token(top_operator,stdout); //error here, top_operator is invalid
-					printf("\n");
+					if (!stack_empty(operators))
+						top_operator = (Token *)stack_top(operators); 
+					else 
+						top_operator = NULL;
+
 				}
 				
 			}
@@ -236,20 +256,23 @@ Queue * shuntingYard(Queue * infix){
 			if(token_parenthesis(token) == '(')
 				stack_push(operators,token);
 			
-			else if(token_is_parenthesis(token) && token_parenthesis(token) == ')'){
-				for( Token *top_operator = (Token *)stack_top(operators) ;
-				(
-					!stack_empty(operators) &&
-					token_is_parenthesis(token) && token_parenthesis(token) != '('
-				);
-					top_operator = (Token *)stack_top(operators)
+			else if(token_parenthesis(token) == ')'){
+				Token *top_operator;
+				if((top_operator = (Token *)stack_top_or_NULL(operators)))
+					while (!stack_empty(operators) && !(token_is_parenthesis(token) && token_parenthesis(token) == '(')){
+						
+						queue_push(output,top_operator);
+						if(token_is_parenthesis(top_operator)){
+							printf("!!!!!!!!!!!!! : ");
+							print_token(top_operator,stderr);
+						}
+						stack_pop(operators);
 
-				){
-					queue_push(output,top_operator);
+						if (!stack_empty(operators))
+							top_operator = (Token *)stack_top(operators);
+					}
+				if (!stack_empty(operators))
 					stack_pop(operators);
-				}
-				stack_pop(operators);
-
 			}
 			
 		}
@@ -257,11 +280,13 @@ Queue * shuntingYard(Queue * infix){
 
 		
 	}
+	if (!stack_empty(operators))
+		for(Token *top_operator = (Token *)stack_top(operators) ; !stack_empty(stack_pop(operators)) ; top_operator = stack_empty(operators)? NULL:  (Token *)stack_top(operators)){
+			queue_push(output,top_operator);
+		};
 
-	for(Token *top_operator = (Token *)stack_top(operators) ; !stack_empty(operators) ; top_operator = (Token *)stack_top(operators)){
-		queue_push(output,top_operator);
-		stack_pop(operators);
-	}
+		for(int i = 0; i<10; i++);
+
 	free(operators);
 	delete_queue(&copy_infix);
 
@@ -277,6 +302,7 @@ Queue * shuntingYard(Queue * infix){
  *
  */
 int main(int argc, char** argv){
+
 	if (argc<2) {
 		fprintf(stderr,"usage : %s filename\n", argv[0]);
 		return 1;
