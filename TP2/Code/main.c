@@ -29,8 +29,8 @@ void * unwrapMalloc(size_t size){
 /// @brief free tokens inside a queue, to use with map 
 /// @param v_token the token that will be free
 /// @param set_null_usr_param set fread token to NULL or not
-void freeTokenQueueMap(void * v_token, void * set_null_usr_param/* *bool */){
-	ptrToken p_token = (ptrToken) v_token;
+void freeTokenQueueMap(void * token_ptr, void * set_null_usr_param/* *bool */){
+	ptrToken p_token = (ptrToken) token_ptr;
 
 	bool* p_set_null = (bool *) set_null_usr_param; 
 	if (*p_set_null){
@@ -45,7 +45,7 @@ void freeTokenQueueMap(void * v_token, void * set_null_usr_param/* *bool */){
 
 
 bool isSymbol(char c);
-bool isNum_f(char c);
+bool isFloatingPointNumber(char c);
 Queue * stringToToken(const char* expression);
 Queue *shuntingYard(Queue * infix);
 float evaluateExpression(Queue* postfix);
@@ -60,11 +60,12 @@ void print_queue(FILE* f, Queue* q);
 /** 
  * Function to be written by students
  */
+#define BUFFER_SIZE 256
 void computeExpressions(FILE* input) {
 
-	char *buffer =unwrapMalloc(sizeof(char) * 256);
+	char *buffer =unwrapMalloc(sizeof(char) * BUFFER_SIZE);
 	
-	size_t buffer_size = 256;
+	size_t buffer_size = BUFFER_SIZE;
 	ssize_t readed;
 	int i = 0;
 
@@ -104,6 +105,7 @@ void computeExpressions(FILE* input) {
 	}
 	free(buffer);
 }
+#undef BUFFER_SIZE
 
 /// @brief return if c is a symbole
 bool isSymbol(char c){
@@ -124,7 +126,7 @@ bool isSymbol(char c){
 }
 
 /// @brief return if c is a char representing a number
-bool isNum_f(char c){
+bool isFloatingPointNumber(char c){
 	return (c >= '0' && c <= '9') || c == '.';
 }
 
@@ -140,11 +142,11 @@ Queue * stringToToken(const char* expression){
 				queue_push(queue, (void *) p_token);
 
 				curpos++;
-			}else if (isNum_f(*curpos)){
+			}else if (isFloatingPointNumber(*curpos)){
 
 				char buffer[256];
 				int buffer_index = 0;
-				while (isNum_f(*curpos)){
+				while (isFloatingPointNumber(*curpos)){
 					buffer[buffer_index++] = *curpos;
 					curpos++;
 				}
@@ -240,9 +242,10 @@ const Token* evaluateOperator(const Token* arg1, const Token* op, const Token* a
 	case ('+') : return create_token_from_value(token_value(arg1) + token_value(arg2));
 	case ('-') : return create_token_from_value(token_value(arg1) - token_value(arg2));
 	case ('*') : return create_token_from_value(token_value(arg1) * token_value(arg2));
-	case ('/') : return create_token_from_value(token_value(arg1) / token_value(arg2));
-	case ('^') : return create_token_from_value( powf32(token_value(arg1) , token_value(arg2)));
+	case ('/') : return create_token_from_value(token_value(arg1) / token_value(arg2)); //considering no ZERO division
+	case ('^') : return create_token_from_value( powf(token_value(arg1) , token_value(arg2)));
 	default:
+		fprintf(stderr,"evaluateOperator failed, something was set as an operator, and was not an operator");
 		return NULL;
 	};
 } 
@@ -252,6 +255,7 @@ float evaluateExpression(Queue* postfix){
 	Stack *stack = create_stack(queue_size(postfix));
 	Queue *to_free_queue = create_queue();
 	while (!queue_empty(postfix)){
+		
 		
 		if(token_is_operator(token)){
 			const Token * operand_2 = stack_top(stack);
