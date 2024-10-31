@@ -11,12 +11,6 @@
 #include "queue.h"
 #include "stack.h"
 
-const void * stack_top_or_NULL(const ptrStack s){
-	if(stack_empty(s))
-		return NULL;
-	else 
-		return stack_top(s);
-}
 
 /// @brief make a malloc, and exit if the malloc failed, with an error message
 /// @param size bytes to alloc
@@ -32,23 +26,10 @@ void * unwrapMalloc(size_t size){
 	return result;
 }
 
-/// @brief exit the program with an error message if a ptr is set to NULL
-/// @param ptr a pointer
-/// @return the same pointer, if not set to NULL
-void* unwrapPtr(void * ptr){
-	if(!ptr){
-		fprintf(stderr,"pointer is set to NULL");
-		perror("stopping program ");
-		exit(1);
-	}
-	return ptr;
-}
-
-
 /// @brief free tokens inside a queue, to use with map 
 /// @param v_token the token that will be free
 /// @param set_null_usr_param set fread token to NULL or not
-void freeTokenMap(void * v_token, void * set_null_usr_param/* *bool */){
+void freeTokenQueueMap(void * v_token, void * set_null_usr_param/* *bool */){
 	ptrToken p_token = (ptrToken) v_token;
 
 	bool* p_set_null = (bool *) set_null_usr_param; 
@@ -62,20 +43,13 @@ void freeTokenMap(void * v_token, void * set_null_usr_param/* *bool */){
 	
 }
 
-/// @brief Making a copy of a queue with map
-/// @param p_token the token ptr that is copy
-/// @param dest the queue where the p_token is paste
-/// @attention This is not doing a deep copy of a queue, so if p_token is free the source queue, p_token will be free in the dest_queue too !   
-void copyTokenMap(void * p_token, void * dest){
 
-	Queue * dest_queue = (Queue*) dest;
-	queue_push(dest_queue,p_token);
-}
-
-bool isSymbole(char c);
+bool isSymbol(char c);
 bool isNum_f(char c);
 Queue * stringToToken(const char* expression);
 Queue *shuntingYard(Queue * infix);
+float evaluateExpression(Queue* postfix);
+const Token* evaluateOperator(const Token* arg1, const Token* op, const Token* arg2);
 
 /** 
  * Utilities function to print the token queues
@@ -109,15 +83,18 @@ void computeExpressions(FILE* input) {
 			printf("Postfix :");
 			Queue * postfix = shuntingYard(infix); //postfix is not a deep copy !
 			print_queue(stdout,postfix);
+			printf("\n");
 
-			printf("\n\n");
+			printf("Evaluate : %f\n",evaluateExpression(postfix));
+
+			printf("\n");
 
 			//free all the token
 			bool usr_prm =true;
 			bool * p_usr_prm = &usr_prm;
 
 			//free all tokens from infix and postfix
-			queue_map(infix,(QueueMapOperator)freeTokenMap,(void *) p_usr_prm);	
+			queue_map(infix,(QueueMapOperator)freeTokenQueueMap,(void *) p_usr_prm);	
 
 			delete_queue(&postfix);
 			delete_queue(&infix);
@@ -129,15 +106,21 @@ void computeExpressions(FILE* input) {
 }
 
 /// @brief return if c is a symbole
-bool isSymbole(char c){
-	return( 
-		(c == '+')
-	||	(c == '-')
-	||	(c == '*')
-	||	(c == '/')
-	||	(c == '^')
-	||	(c == '(')
-	||	(c == ')'));
+bool isSymbol(char c){
+	switch (c){
+	case '+':
+	case '-':
+	case '*':
+	case '/':
+	case '^':
+	case '(':
+	case ')':
+		return true;
+	
+	default:
+		return false;
+	}
+
 }
 
 /// @brief return if c is a char representing a number
@@ -152,7 +135,7 @@ Queue * stringToToken(const char* expression){
 	while (*curpos != '\0'){
 		Token * p_token = NULL;
 		if (*curpos != ' ' && *curpos != '\n'){
-			if(isSymbole(*curpos)){
+			if(isSymbol(*curpos)){
 				p_token = create_token_from_string(curpos,1);
 				queue_push(queue, (void *) p_token);
 
@@ -181,117 +164,119 @@ Queue * stringToToken(const char* expression){
 	return queue;
 }
 
-Queue * shuntingYard(Queue * infix){
-	//TODO tout réecrire !!! :')
+struct shuntingYardParams{
+	Queue * output;
+	Stack * operators;
 
-	Queue * output = create_queue();
-	Stack * operators = create_stack(queue_size(infix));
+};
 
-	Queue * copy_infix = create_queue();
-	queue_map(infix,(QueueMapOperator) copyTokenMap,copy_infix);
-	
+void shuntingYardMap (const void *v_token, void *params){
+	struct shuntingYardParams * p_params = params;
+	Queue * output  = p_params->output;
+	Stack * operator= p_params->operators;
+	Token * token = (Token *) v_token;
 
-	while (!queue_empty(copy_infix)){
-		Token *token = (Token *)queue_top(copy_infix);
-
-
-		#ifdef DEBUG
-		unwrapPtr(token);
-		#endif
-
-		if(token_is_number(token)){
-			queue_push(output,token);
+	if(token_is_number(token)){
+		queue_push(output,v_token);
+	}
+	else if(token_is_operator(token)){
+		while (
+				!stack_empty(operator)
+			&&
+				(!token_is_parenthesis(stack_top(operator)))
+			&&
+				(
+					( token_operator_priority(stack_top(operator))>token_operator_priority(token))
+				||
+					(token_operator_priority(stack_top(operator))==token_operator_priority(token) && token_operator_leftAssociative(token))
+				)
+		){
+			queue_push(output,stack_top(operator));
+			stack_pop(operator);
 		}
-
-		else if(token_is_operator(token)){
-
-			if (!stack_empty(operators)){
-
-				Token *top_operator = (Token *)stack_top(operators);
-				while (
-					!stack_empty(operators) &&
-					(
-						(
-							//the operator at the top of the stack is not a left bracket 
-							!(token_is_parenthesis(top_operator) && token_parenthesis(top_operator) ==  ')')
-						)
-						&& //and
-						(
-							
-							(
-								//there is an operator at the top of the operator stack with greater precedence
-								token_operator_priority(top_operator) > token_operator_priority(token) 
-							)
-							||//or
-							(
-								(
-									// the operator at the top of the operator stack has equal precedence 
-									token_operator_priority(top_operator) == token_operator_priority(token)
-								
-								&&//and
-								
-									// the operator is left associative
-									token_operator_leftAssociative(token)
-								)
-							) 
-							
-						) 
-					))
-				{
-					queue_push(output,top_operator);
-					stack_pop(operators);
-					if (!stack_empty(operators))
-						top_operator = (Token *)stack_top(operators); 
-					else 
-						top_operator = NULL;
-
-				}
-				
-			}
-			stack_push(operators,token);
-		}
-
-		else if(token_is_parenthesis(token)){
-
-			if(token_parenthesis(token) == '(')
-				stack_push(operators,token);
-			
-			else if(token_parenthesis(token) == ')'){
-				Token *top_operator;
-				if((top_operator = (Token *)stack_top_or_NULL(operators)))
-					while (!stack_empty(operators) && !(token_is_parenthesis(token) && token_parenthesis(token) == '(')){
-						
-						queue_push(output,top_operator);
-						if(token_is_parenthesis(top_operator)){
-							printf("!!!!!!!!!!!!! : ");
-							print_token(top_operator,stderr);
-						}
-						stack_pop(operators);
-
-						if (!stack_empty(operators))
-							top_operator = (Token *)stack_top(operators);
-					}
-				if (!stack_empty(operators))
-					stack_pop(operators);
-			}
-			
-		}
-		queue_pop(copy_infix);
-
+		stack_push(operator,token);
 		
 	}
-	if (!stack_empty(operators))
-		for(Token *top_operator = (Token *)stack_top(operators) ; !stack_empty(stack_pop(operators)) ; top_operator = stack_empty(operators)? NULL:  (Token *)stack_top(operators)){
-			queue_push(output,top_operator);
-		};
+	else if(token_is_parenthesis(token)){
+		if(token_parenthesis(token) == '('){
+			stack_push(operator,token);
+		}
+		else /*if equal to ')'*/{
+			const Token * top_operator =  stack_top(operator);
+			while (!token_is_parenthesis(top_operator)){
+				queue_push(output,stack_top(operator));
+				stack_pop(operator);
 
-		for(int i = 0; i<10; i++);
+				top_operator =  stack_top(operator);
+			}
+			stack_pop(operator);	
+		}
+	}
+}
 
-	free(operators);
-	delete_queue(&copy_infix);
+Queue * shuntingYard(Queue * infix){
 
-	return output;
+	struct shuntingYardParams params;
+	params.output = create_queue();
+	params.operators = create_stack(queue_size(infix));
 	
+	queue_map(infix,shuntingYardMap,&params);
+
+	while (!stack_empty(params.operators)){
+		queue_push(params.output,stack_top(params.operators));
+		stack_pop(params.operators);
+	}
+	
+
+	free(params.operators);
+	return params.output;
+}
+
+
+const Token* evaluateOperator(const Token* arg1, const Token* op, const Token* arg2){
+	assert(token_is_number(arg1) && token_is_number(arg2) && token_is_operator(op));
+
+	switch (token_operator(op)){
+	case ('+') : return create_token_from_value(token_value(arg1) + token_value(arg2));
+	case ('-') : return create_token_from_value(token_value(arg1) - token_value(arg2));
+	case ('*') : return create_token_from_value(token_value(arg1) * token_value(arg2));
+	case ('/') : return create_token_from_value(token_value(arg1) / token_value(arg2));
+	case ('^') : return create_token_from_value( powf32(token_value(arg1) , token_value(arg2)));
+	default:
+		return NULL;
+	};
+} 
+
+float evaluateExpression(Queue* postfix){
+	const Token * token = queue_empty(postfix) ? NULL : queue_top(postfix);
+	Stack *stack = create_stack(queue_size(postfix));
+	Queue *to_free_queue = create_queue();
+	while (!queue_empty(postfix)){
+		
+		if(token_is_operator(token)){
+			const Token * operand_2 = stack_top(stack);
+			const Token * operand_1 = stack_top(stack_pop(stack));
+			const Token * result = evaluateOperator(operand_1,token,operand_2);
+
+			stack_push(stack_pop(stack),result);
+
+			queue_push(to_free_queue,result);
+
+		}
+		else if(token_is_number(token)){
+			stack_push(stack,token);
+		}
+
+		token = queue_empty(queue_pop(postfix)) ? NULL : queue_top(postfix);
+	}
+	float result = token_value(stack_top(stack));
+
+	free(stack);
+	bool param = true;
+	queue_map(to_free_queue,(QueueMapOperator)freeTokenQueueMap,&param);
+	delete_queue(&to_free_queue);
+
+	return result;
 }
 
 /** Main function for testing.
