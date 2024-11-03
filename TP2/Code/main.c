@@ -40,14 +40,13 @@ void freeTokenQueueMap(void * token_ptr, void * set_null_usr_param/* *bool */){
 	else{
 		free(p_token);
 	}
-	
 }
 
 
 bool isSymbol(char c);
 bool isFloatingPointNumber(char c);
-Queue * stringToToken(const char* expression);
-Queue *shuntingYard(Queue * infix);
+Queue* stringToToken(const char* expression);
+Queue* shuntingYard(Queue * infix);
 float evaluateExpression(Queue* postfix);
 const Token* evaluateOperator(const Token* arg1, const Token* op, const Token* arg2);
 
@@ -90,12 +89,11 @@ void computeExpressions(FILE* input) {
 
 			printf("\n");
 
-			//free all the token
+			//free all tokens from infix and postfix
 			bool usr_prm =true;
 			bool * p_usr_prm = &usr_prm;
-
-			//free all tokens from infix and postfix
-			queue_map(infix,(QueueMapOperator)freeTokenQueueMap,(void *) p_usr_prm);	
+			
+			queue_map(infix,(QueueMapOperator)freeTokenQueueMap,(void *) p_usr_prm);
 
 			delete_queue(&postfix);
 			delete_queue(&infix);
@@ -130,6 +128,7 @@ bool isFloatingPointNumber(char c){
 	return (c >= '0' && c <= '9') || c == '.';
 }
 
+#define BUFFER_SIZE 256
 Queue * stringToToken(const char* expression){
 	Queue * queue = create_queue();
 	
@@ -144,7 +143,7 @@ Queue * stringToToken(const char* expression){
 				curpos++;
 			}else if (isFloatingPointNumber(*curpos)){
 
-				char buffer[256];
+				char buffer[BUFFER_SIZE];
 				int buffer_index = 0;
 				while (isFloatingPointNumber(*curpos)){
 					buffer[buffer_index++] = *curpos;
@@ -161,10 +160,9 @@ Queue * stringToToken(const char* expression){
 			curpos++;
 		}
 	}
-
-
 	return queue;
 }
+#undef BUFFER_SIZE
 
 struct shuntingYardParams{
 	Queue * output;
@@ -242,7 +240,7 @@ const Token* evaluateOperator(const Token* arg1, const Token* op, const Token* a
 	case ('+') : return create_token_from_value(token_value(arg1) + token_value(arg2));
 	case ('-') : return create_token_from_value(token_value(arg1) - token_value(arg2));
 	case ('*') : return create_token_from_value(token_value(arg1) * token_value(arg2));
-	case ('/') : return create_token_from_value(token_value(arg1) / token_value(arg2)); //considering no ZERO division
+	case ('/') : return create_token_from_value(token_value(arg1) / token_value(arg2)); //considering no ZERO division (if so, return inf, read the IEEE standard documentation for more informations)
 	case ('^') : return create_token_from_value( powf(token_value(arg1) , token_value(arg2)));
 	default:
 		fprintf(stderr,"evaluateOperator failed, something was set as an operator, and was not an operator");
