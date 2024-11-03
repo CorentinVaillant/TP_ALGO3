@@ -183,3 +183,8 @@ Elle ne contients que deux champs, un champs `output` qui nous serviras de sorti
 
 Au cours de l'éxécution de cette fonction des donneés sont copier au de la File `infix` vers la file retourner (que l'on va nommer `postfix`). Dans les faits, il ne s'agit pas d'une copie profonde ("deep copy"), c'est à dire que les données des éléments ne sont pas copier, mais plutôt les pointeur ves ces éléments, ce qui fait que `postfix` ne fait que contenir des éléments de `infix` juste ordonnées à sa manière, cela est le cas aussi pour les autres Piles et Files utiliser dans cette fonction.  
 Cela permet de n'avoir à liberer la mémoire de ces éléments qu'une fois, avec la File `infix`.
+
+# TODO
+
+- evaluateExpression
+- fonctions auxiliaires
