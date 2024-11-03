@@ -52,6 +52,7 @@ void computeExpressions(FILE* input) {
 
 Cette fonction lit les lignes une par une, et y applique les fonctions demander (dans la partie commenter `/*Some code*/`)  
 
+#### Gestion de la mémoire de ComputeExpression
 
 J'ai choisi d'y définir une constante ```BUFFER_SIZE``` afin de pouvoir alouer de façon simple ma mémoire en lisant chacune des ligne. Cela suppose donc que chacune des lignes du fichier fait moins de 256 charactères, sinon cela entrainera un dépassement de mémoire, ce fonctionnement aurait pût être améliorer, en cherchant d'abord la taille de la ligne, et en allouant en conséquence, ce qui aurait réduit la compléxité en mémoire, mais ce n'était pas le but de l'exercice, j'ai donc décider de ne pas me compliquer la tâche et de rester simple. J'ai pris soin de `undef` buffer après la définition de cette fonction, afin de pouvoir définir d'autre constantes au même nom, pour de potentiel future fonction.
 
@@ -91,6 +92,8 @@ Queue * stringToToken(const char* expression){
 
 Cette fonction fonctionne en lisant le charactère à la position `curpos` (initialiser au début de la chaîne), regarde s'il est valide, et gére diférent cas en fonction de s'il s'agit d'une parenthése, d'un nombre, ou d'un opérateur.
 
+#### Gestion de la mémoire de stringToTokenQueue
+
 La constante `BUFFER_SIZE` fonctionne comme pour la [fonction précédente](#computeexpression).
 
 Cette fonction alloue la mémoire pour des tokens en utilisant les fonctions de type `Token * create_token_from_`, il faut donc penser à libérer la mémoire après coup.
@@ -112,7 +115,7 @@ queue_map(queue,(QueueMapOperator)freeTokenQueueMap,(void *) p_usr_prm);
 Le cast en `QueueMapOperator` est ici obligatoire, car cela permet d'éviter les Warning, et donc de compiler quand `-Werror` est ajouter lors de la compilation.
 En effet `freeTokenQueueMap` n'est pas du bon type, car `token_ptr` n'est pas constant, afin de pouvoir libérer sa mémoire.
 
-## ShuntingYard
+### ShuntingYard
 
 Cette fonction implémente l'algorithme de *Shunting Yard*, qui a pour but de faire passer une notation *infixe* (standard : `a+b`) a *postfixe* (polonaise inverse `a b +`).
 Il s'agit de la fonction que j'ai eu le plus de mal à implémenter, j'ai du m'y reprendre à plusieur fois, et la gestion de mémoire n'était pas facile non plus.
@@ -135,6 +138,8 @@ Queue * shuntingYard(Queue * infix){
  return params.output;
 }
 ```
+
+On peut voir que `params.operators` est définie comme étant une Pile de même taille que la File `infix` (`queue_size(infix)`), cela permet d'être sur que la Pile d'opérateurs sera assez grande, car même dans le pire cas, `infix` sontient strictement moins d'opérateurs que son nombre total d'éléments.  
 
 La partie dure de cette implémentation était de parcourir la File `infix` sans rajouter de compléxiter en mémoire, j'ai donc opter pour la solution de rajouter une fonction à utiliser avec la fonction `queue_map` :
 
@@ -163,4 +168,18 @@ void shuntingYardMap (const void *v_token, void *params){
 ```
 
 Cela nous permet de faire la premier partie de l'algorithme (où il faut parcourir toute File).
-On peut voir que 
+On peut voir que le paramétre `void *params` corespond à un pointeur vers une structure, cette structure nous sert en effet de moyen de faire passer des paramètres dans la fonction :
+
+```c
+struct shuntingYardParams{
+ Queue * output;
+ Stack * operators;
+};
+```
+
+Elle ne contients que deux champs, un champs `output` qui nous serviras de sorties pour continuer l'éxécution de l'algorithme. et `operators` qui est une autre sortie, une Pile, contenant tout les opérateurs à traiter.
+
+#### Gestion de la mémoire de ShuntingYard
+
+Au cours de l'éxécution de cette fonction des donneés sont copier au de la File `infix` vers la file retourner (que l'on va nommer `postfix`). Dans les faits, il ne s'agit pas d'une copie profonde ("deep copy"), c'est à dire que les données des éléments ne sont pas copier, mais plutôt les pointeur ves ces éléments, ce qui fait que `postfix` ne fait que contenir des éléments de `infix` juste ordonnées à sa manière, cela est le cas aussi pour les autres Piles et Files utiliser dans cette fonction.  
+Cela permet de n'avoir à liberer la mémoire de ces éléments qu'une fois, avec la File `infix`.
