@@ -52,7 +52,7 @@ void computeExpressions(FILE* input) {
 
 Cette fonction lit les lignes une par une, et y applique les fonctions demander (dans la partie commenter `/*Some code*/`)  
 
-#### Gestion de la mémoire de ComputeExpression
+#### Gestion de la mémoire dans ComputeExpression
 
 J'ai choisi d'y définir une constante ```BUFFER_SIZE``` afin de pouvoir alouer de façon simple ma mémoire en lisant chacune des ligne. Cela suppose donc que chacune des lignes du fichier fait moins de 256 charactères, sinon cela entrainera un dépassement de mémoire, ce fonctionnement aurait pût être améliorer, en cherchant d'abord la taille de la ligne, et en allouant en conséquence, ce qui aurait réduit la compléxité en mémoire, mais ce n'était pas le but de l'exercice, j'ai donc décider de ne pas me compliquer la tâche et de rester simple. J'ai pris soin de `undef` buffer après la définition de cette fonction, afin de pouvoir définir d'autre constantes au même nom, pour de potentiel future fonction.
 
@@ -92,7 +92,7 @@ Queue * stringToToken(const char* expression){
 
 Cette fonction fonctionne en lisant le charactère à la position `curpos` (initialiser au début de la chaîne), regarde s'il est valide, et gére diférent cas en fonction de s'il s'agit d'une parenthése, d'un nombre, ou d'un opérateur.
 
-#### Gestion de la mémoire de stringToTokenQueue
+#### Gestion de la mémoire dans stringToTokenQueue
 
 La constante `BUFFER_SIZE` fonctionne comme pour la [fonction précédente](#computeexpression).
 
@@ -179,12 +179,49 @@ struct shuntingYardParams{
 
 Elle ne contients que deux champs, un champs `output` qui nous serviras de sorties pour continuer l'éxécution de l'algorithme. et `operators` qui est une autre sortie, une Pile, contenant tout les opérateurs à traiter.
 
-#### Gestion de la mémoire de ShuntingYard
+#### Gestion de la mémoire dans ShuntingYard
 
 Au cours de l'éxécution de cette fonction des donneés sont copier au de la File `infix` vers la file retourner (que l'on va nommer `postfix`). Dans les faits, il ne s'agit pas d'une copie profonde ("deep copy"), c'est à dire que les données des éléments ne sont pas copier, mais plutôt les pointeur ves ces éléments, ce qui fait que `postfix` ne fait que contenir des éléments de `infix` juste ordonnées à sa manière, cela est le cas aussi pour les autres Piles et Files utiliser dans cette fonction.  
 Cela permet de n'avoir à liberer la mémoire de ces éléments qu'une fois, avec la File `infix`.
 
-# TODO
+### evaluteExpression 
 
-- evaluateExpression
+Le but de cette fonction est de calculer le résultat d'une expression arithmétique en nottation *postfix* et de retourner sa valeur.
+
+```c
+float evaluateExpression(Queue* postfix){
+ const Token * token = queue_empty(postfix) ? NULL : queue_top(postfix);
+ Stack *stack = create_stack(queue_size(postfix));
+ Queue *to_free_queue = create_queue();
+ while (!queue_empty(postfix)){
+  
+  if(token_is_operator(token)){
+   /*handle the case when token is an operator*/
+  }
+  else if(token_is_number(token)){
+   /*handle the case when token is an operator*/
+  }
+
+  token = queue_empty(queue_pop(postfix)) ? NULL : queue_top(postfix);
+ }
+ float result = token_value(stack_top(stack));
+
+ /*free memory*/
+ free(stack);
+ bool param = true;
+ queue_map(to_free_queue,(QueueMapOperator)freeTokenQueueMap,&param);
+ delete_queue(&to_free_queue);
+
+ return result;
+}
+```
+
+Si `postfix` n'est pas une File représentant la notation *postfix* valide, le comportement de cette fonction est indéfinie. En effet, cela a de fortes chances de produire un accés à de la mémoire non aloué, ou aloué pour autre chose. Ceci pourrait être réglé en vérifiant que l'on ne dépasse jamais la taille de la File, et en retournan une erreur dans ce cas, cela aurait demander une utilisation de mémoire suplémentaire, et une vérification redondante, n'étant pas le but de cette exercice, j'ai fais le choix de ne pas en accomoder cette fonction.
+
+#### Gestion de la mémoire dans evaluteExpression
+
+De nouveaux Token son créer dans cette fonction, ils faut donc libérer la mémoire qui leur a était aloué, pour cela j'ai décider de créer une File `to_free_queue`, dans laquelle je pousse chaque token que je créer, à la fin de ma fonction, je libére cette File avec la fonction `freeTokenQueueMap` dont le comportement a était expliqué un peu plus haut.
+
+## TODO
+
 - fonctions auxiliaires
