@@ -45,6 +45,7 @@ void freeTokenQueueMap(void * token_ptr, void * set_null_usr_param/* *bool */){
 
 bool isSymbol(char c);
 bool isFloatingPointNumber(char c);
+
 Queue* stringToToken(const char* expression);
 Queue* shuntingYard(Queue * infix);
 float evaluateExpression(Queue* postfix);
@@ -231,7 +232,6 @@ Queue * shuntingYard(Queue * infix){
 	free(params.operators);
 	return params.output;
 }
-
 
 const Token* evaluateOperator(const Token* arg1, const Token* op, const Token* arg2){
 	assert(token_is_number(arg1) && token_is_number(arg2) && token_is_operator(op));

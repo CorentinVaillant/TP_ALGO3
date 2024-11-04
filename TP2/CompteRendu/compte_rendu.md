@@ -13,9 +13,9 @@ Au cours de ce travil il nous a été demander d'implémenter plusieurs fonction
 
 - [`Queue* shuntingYard(Queue* infix)`](#shuntingyard)
 
-- ```c
-    float evaluateExpression(Queue* postfix)
-    ```
+- [`float evaluateExpression(Queue* postfix)`](#evaluteexpression)
+
+- [fonctions auxiliares](#fonctions-auxiliaires)
 
 <br/>
 <br/>
@@ -56,13 +56,7 @@ Cette fonction lit les lignes une par une, et y applique les fonctions demander 
 
 J'ai choisi d'y définir une constante ```BUFFER_SIZE``` afin de pouvoir alouer de façon simple ma mémoire en lisant chacune des ligne. Cela suppose donc que chacune des lignes du fichier fait moins de 256 charactères, sinon cela entrainera un dépassement de mémoire, ce fonctionnement aurait pût être améliorer, en cherchant d'abord la taille de la ligne, et en allouant en conséquence, ce qui aurait réduit la compléxité en mémoire, mais ce n'était pas le but de l'exercice, j'ai donc décider de ne pas me compliquer la tâche et de rester simple. J'ai pris soin de `undef` buffer après la définition de cette fonction, afin de pouvoir définir d'autre constantes au même nom, pour de potentiel future fonction.
 
-J'ai définie une fonction `unwrapMalloc`
-
-```c
-void * unwrapMalloc(size_t size)
-```
-
-Cette fonction me permet de renvoyer une erreur quand un `malloc` échoue, ce qui me permet de ne pas avoir à faire la vérification manuelle à chaque allocation de mémoire.
+Pour mon allocation mémoire j'utilise la fonction auxiliaire [`unwrapMaloc`](#unwrapmaloc).  
 Et j'ai aussi pris soin de libérer la mémoire à la fin de chaque éxécution de boucle, afin de garantir qu'il n'y est pas de fuite de mémoire.
 
 ### stringToTokenQueue
@@ -78,8 +72,15 @@ Queue * stringToToken(const char* expression){
  while (*curpos != '\0'){
   Token * p_token = NULL;
   if (*curpos != ' ' && *curpos != '\n'){
-   /*read the token
+   
+    if(isSymbol(*curpos)){
+      /*read the token as an operator or parenthesis
     and go to the next element if possible*/
+    }
+    else if (isFloatingPointNumber(*curpos)){
+      /*read the token as a float
+    and go to the next element if possible*/
+    }
   }
   else {
    /*go to the next element if possible*/
@@ -90,30 +91,15 @@ Queue * stringToToken(const char* expression){
 #undef BUFFER_SIZE
 ```
 
-Cette fonction fonctionne en lisant le charactère à la position `curpos` (initialiser au début de la chaîne), regarde s'il est valide, et gére diférent cas en fonction de s'il s'agit d'une parenthése, d'un nombre, ou d'un opérateur.
+Cette fonction fonctionne en lisant le charactère à la position `curpos` (initialiser au début de la chaîne), regarde s'il est valide, et gére diférent cas en fonction de s'il s'agit d'une parenthése, d'un nombre, ou d'un opérateur.  
+J'utilise des fonctions auxiliaires afin de savoir si un charactère correspond a un symbole, un opérateur ou une parenthése, ([`isSymbole`](#issymbole)) , ou s'il s'agit d'un nombre ([`isFloatingPointNumber`](#isfloatingpointnumber)).
 
 #### Gestion de la mémoire dans stringToTokenQueue
 
 La constante `BUFFER_SIZE` fonctionne comme pour la [fonction précédente](#computeexpression).
 
 Cette fonction alloue la mémoire pour des tokens en utilisant les fonctions de type `Token * create_token_from_`, il faut donc penser à libérer la mémoire après coup.
-Pour cela j'ai définie une fonction `freeTokenQueueMap` :
-
-```c
-void freeTokenQueueMap(void * token_ptr, void * set_null_usr_param/* *bool */)
-```
-
-Cette fonction à pour but de libérer tous les token contenue dans une File, en utilisan la fonction `queue_map`, elle peut être utiliser de la manière suivante :
-
-``` c
-bool usr_prm =true;
-bool * p_usr_prm = &usr_prm;
-
-queue_map(queue,(QueueMapOperator)freeTokenQueueMap,(void *) p_usr_prm);
-```
-
-Le cast en `QueueMapOperator` est ici obligatoire, car cela permet d'éviter les Warning, et donc de compiler quand `-Werror` est ajouter lors de la compilation.
-En effet `freeTokenQueueMap` n'est pas du bon type, car `token_ptr` n'est pas constant, afin de pouvoir libérer sa mémoire.
+Pour cela j'utilise une fonction auxiliaire [`freeTokenQueueMap`](#freetokenqueuemap) avec la fonction `queue_map`.
 
 ### ShuntingYard
 
@@ -184,7 +170,7 @@ Elle ne contients que deux champs, un champs `output` qui nous serviras de sorti
 Au cours de l'éxécution de cette fonction des donneés sont copier au de la File `infix` vers la file retourner (que l'on va nommer `postfix`). Dans les faits, il ne s'agit pas d'une copie profonde ("deep copy"), c'est à dire que les données des éléments ne sont pas copier, mais plutôt les pointeur ves ces éléments, ce qui fait que `postfix` ne fait que contenir des éléments de `infix` juste ordonnées à sa manière, cela est le cas aussi pour les autres Piles et Files utiliser dans cette fonction.  
 Cela permet de n'avoir à liberer la mémoire de ces éléments qu'une fois, avec la File `infix`.
 
-### evaluteExpression 
+### evaluteExpression
 
 Le but de cette fonction est de calculer le résultat d'une expression arithmétique en nottation *postfix* et de retourner sa valeur.
 
@@ -222,6 +208,79 @@ Si `postfix` n'est pas une File représentant la notation *postfix* valide, le c
 
 De nouveaux Token son créer dans cette fonction, ils faut donc libérer la mémoire qui leur a était aloué, pour cela j'ai décider de créer une File `to_free_queue`, dans laquelle je pousse chaque token que je créer, à la fin de ma fonction, je libére cette File avec la fonction `freeTokenQueueMap` dont le comportement a était expliqué un peu plus haut.
 
-## TODO
+### Fonctions auxiliaires
 
-- fonctions auxiliaires
+Au cours de l'écriture de ces fonctions j'ai de écrire plusieur fonction auxiliare, demander ou non :
+
+ - 
+
+#### freeTokenQueueMap
+
+Lors de l'éxécution de mon programme, j'ai plusieurs `Token` qui sont aloué et placer dans des File, il faut pouvoir libérer la mémoire occupé par ces `Token`.
+Pour cela j'ai définie une fonction `freeTokenQueueMap` :
+
+```c
+void freeTokenQueueMap(void * token_ptr, void * set_null_usr_param/* *bool */)
+```
+
+Cette fonction à pour but de libérer tous les token contenue dans une File, en utilisan la fonction `queue_map`, elle peut être utiliser de la manière suivante :
+
+``` c
+bool usr_prm =true;
+bool * p_usr_prm = &usr_prm;
+
+queue_map(queue,(QueueMapOperator)freeTokenQueueMap,(void *) p_usr_prm);
+```
+
+Le cast en `QueueMapOperator` est ici obligatoire, car cela permet d'éviter les Warning, et donc de compiler quand `-Werror` est ajouter lors de la compilation.
+En effet `freeTokenQueueMap` n'est pas du bon type, car `token_ptr` n'est pas constant, afin de pouvoir libérer sa mémoire.
+
+#### unwrapMaloc
+
+Pour éviter les comportements non définie qui peuvent subvenire quand une allocation mémoire échoue avec la fonction `malloc`
+J'ai définie une fonction `unwrapMalloc`
+
+```c
+void * unwrapMalloc(size_t size){
+ void * result = malloc(size);
+ if (!result){
+  fprintf(stderr,"could not initialize %ld bytes into the heap\n",size);
+  perror("stopping program ");
+  exit(1);
+ }
+ return result;
+}
+```
+
+Cette fonction me permet de renvoyer une erreur quand un `malloc` échoue, ce qui me permet de ne pas avoir à faire la vérification manuelle à chaque allocation de mémoire.
+
+
+#### isSymbole
+
+Le but de la fonction `isSymbole` est de savoir si un charactére correspond a un opérateur ou a une paranthése.
+
+```c
+bool isSymbol(char c){
+ switch (c){
+ case '+': case '-': case '*': case '/': case '^': case '(': case ')':
+  return true;
+ 
+ default:
+  return false;
+ }
+
+}
+```
+
+J'ai choisi d'utilser un "switch case" car cela permet un fonctionnement plus rapide du programme (sans optimisation du compilateur) et augmente la lisibilité (faire une condition avec `(c == '+' || c == '-' ||...)` aurait été moins lisible).
+
+
+#### isFloatingPointNumber
+
+
+
+```c
+bool isFloatingPointNumber(char c){
+ return (c >= '0' && c <= '9') || c == '.';
+}
+```
