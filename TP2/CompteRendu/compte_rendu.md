@@ -268,7 +268,6 @@ bool isSymbol(char c){
  default:
   return false;
  }
-
 }
 ```
 
@@ -277,10 +276,12 @@ J'ai choisi d'utilser un "switch case" car cela permet un fonctionnement plus ra
 
 #### isFloatingPointNumber
 
-
+Retourne si un charactère fais partie d'une chaîne de charactère correspondant a un flottant.
 
 ```c
 bool isFloatingPointNumber(char c){
  return (c >= '0' && c <= '9') || c == '.';
 }
 ```
+
+Il n'y a pas grand chose a dire sur cette fonction.
