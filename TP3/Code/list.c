@@ -39,7 +39,7 @@ void * unwrapMalloc(size_t size){
 
 /*-----------------------------------------------------------------*/
 
-List* list_create(void) {
+List* list_create(void) {//! probably error with a print list
 
 	List* l =  unwrapMalloc(sizeof(List)+sizeof(LinkedElement));
 	LinkedElement *p_sentinel = (LinkedElement *)(l+1);
@@ -141,7 +141,7 @@ List* list_pop_back(List* l){
 
 List* list_insert_at(List* l, int p, int v) {
 	assert(p <= l->size);
-	LinkedElement *cur_elem = l->sentinel;
+	LinkedElement *cur_elem = l->sentinel->next;
 	LinkedElement *to_add = unwrapMalloc(sizeof(LinkedElement));
 	to_add->value = v;
 	for(int i = 0 ; i<p ; i++){
@@ -160,9 +160,9 @@ List* list_insert_at(List* l, int p, int v) {
 
 /*-----------------------------------------------------------------*/
 
-List* list_remove_at(List* l, int p) {//!invalide ptr here
+List* list_remove_at(List* l, int p) {
 	assert(p < l->size);
-	LinkedElement *to_remove = l->sentinel;
+	LinkedElement *to_remove = l->sentinel->next;
 	for(int i = 0 ; i<p ; i++){
 		to_remove = to_remove->next;
 	}
@@ -178,7 +178,7 @@ List* list_remove_at(List* l, int p) {//!invalide ptr here
 
 int list_at(const List* l, int p) {
 	assert(p < l->size);
-	LinkedElement *elem = l->sentinel;
+	LinkedElement *elem = l->sentinel->next;
 	for(int i = 0 ; i<p ; i++){
 		elem = elem->next;
 	}
