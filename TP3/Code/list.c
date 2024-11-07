@@ -69,7 +69,7 @@ List* list_push_back(List* l, int v) {
 
 /*-----------------------------------------------------------------*/
 
-void list_delete(ptrList* l) {//TODO
+void list_delete(ptrList* l) {
 	while (!list_is_empty(*l)){
 		list_pop_back(*l);
 	}
@@ -207,7 +207,7 @@ List* list_map(List* l, ListFunctor f, void* environment) {
 		elem = elem->next;
 
 		elem->value = f(elem->value,environment);
-	}while(elem!= l->sentinel);
+	}while(elem->next!= l->sentinel);
 
 	return l;
 }
