@@ -1,11 +1,3 @@
-/*-----------------------------------------------------------------*/
-/*
- Licence Informatique - Structures de données
- Mathias Paulin (Mathias.Paulin@irit.fr)
- 
- Implantation du TAD List vu en cours.
- */
-/*-----------------------------------------------------------------*/
 #include <stdio.h>
 #
 #include <stdlib.h>
@@ -27,6 +19,12 @@ struct s_List {
 	int size;
 };
 
+typedef struct s_Sublist{
+	LinkedElement * head;
+	LinkedElement * tail;
+}Sublist;
+
+/*-----------------------------Usefull functions----------------------*/
 void * unwrapMalloc(size_t size){
 	void * ptr = malloc(size);
 	if(!ptr){
@@ -36,14 +34,82 @@ void * unwrapMalloc(size_t size){
 	else return ptr;
 }
 
+/*--------------------Auxiliary functions----------------------------*/
+// #region list sort
+Sublist list_split(Sublist l){
+	Sublist result;
+	result.tail = l.tail;
+	
+	LinkedElement *curpos = l.tail;
+	__uint8_t iter = 0;
+	while (curpos != l.head){
+		curpos = curpos->next;
+		if(iter++ %2 == 0)
+			result.tail = result.tail->next;
+	}
+	result.head = result.tail->next;
+	return result;
+}
+
+Sublist list_merge(Sublist leftlist, Sublist rightlist, OrderFunctor f){
+	if(leftlist.head == NULL)
+		return rightlist;
+	if(rightlist.head==NULL)
+		return leftlist;
+
+	Sublist result;
+
+	if (f(leftlist.head->value,rightlist.head->value)){
+		result.head = leftlist.head;
+		leftlist.head = leftlist.head->next;
+		result.tail = list_merge(leftlist,rightlist,f).tail;
+	}
+	else{
+		result.head = rightlist.head;
+		rightlist.head = rightlist.head->next;
+		result.tail = list_merge(leftlist,rightlist,f).tail;
+	}
+	return result;
+}
+
+Sublist list_mergesort(Sublist l, OrderFunctor f){
+	//case where the list is a singleton or empty (NULL, NULL)
+	if(l.head == l.tail){
+		return l;
+	}
+	printf("l values :(%d,%d)\n",l.tail->value,l.head->value);
+	
+	Sublist tmp_list = list_split(l);
+	Sublist right;
+	Sublist left;
+
+	left.tail = l.tail;
+	left.head = tmp_list.head;
+
+	right.tail =  tmp_list.head == tmp_list.tail? NULL : tmp_list.head->next;
+	right.head =  tmp_list.head == tmp_list.tail? NULL : l.head;
+	
+	//sorting the two sublist
+	// printf("left values :(%d,%d)\n",left.tail->value,left.head->value);
+	// printf("right values :(%d,%d)\n",right.tail->value,right.head->value);
+	for(int i=0;i<50000;i++);
+	right= list_mergesort(right,f);
+	left = list_mergesort(left ,f);
+
+	//merging the two sublist
+
+	return list_merge(left,right,f);
+}
+// #endregion
 
 /*-----------------------------------------------------------------*/
 
-List* list_create(void) {//! probably error with a print list
+List* list_create(void) {
 
 	List* l =  unwrapMalloc(sizeof(List)+sizeof(LinkedElement));
 	LinkedElement *p_sentinel = (LinkedElement *)(l+1);
 
+	p_sentinel->value = 0xCACA;
 	p_sentinel->next = p_sentinel;
 	p_sentinel->previous = p_sentinel;
 	l->size=0;
@@ -215,7 +281,15 @@ List* list_map(List* l, ListFunctor f, void* environment) {
 /*-----------------------------------------------------------------*/
 
 List* list_sort(List* l, OrderFunctor f) {
-	(void)f;
+	Sublist sub_l;
+	sub_l.head = l->sentinel->previous;
+	sub_l.tail = l->sentinel->next;
+
+	sub_l = list_mergesort(sub_l,f);
+
+	l->sentinel->previous = sub_l.head;
+	l->sentinel->next = sub_l.tail;
+
 	return l;
 }
 

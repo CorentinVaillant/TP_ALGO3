@@ -1,0 +1,2 @@
+Question 6.1 :
+    Non cette structure ne doit pas être déclarer dans list.h. Cette structure n'a pas pour but d'être utiliser par l'utilisateur de la list.
