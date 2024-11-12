@@ -20,8 +20,8 @@ struct s_List {
 };
 
 typedef struct s_Sublist{
-	LinkedElement * head;
-	LinkedElement * tail;
+	LinkedElement * head;//first elem
+	LinkedElement * tail;//last elem
 }Sublist;
 
 /*-----------------------------Usefull functions----------------------*/
@@ -38,68 +38,66 @@ void * unwrapMalloc(size_t size){
 // #region list sort
 Sublist list_split(Sublist l){
 	Sublist result;
-	result.tail = l.tail;
-	
-	LinkedElement *curpos = l.tail;
+	result.head = l.head;
+
+	LinkedElement *curpos = l.head;
 	__uint8_t iter = 0;
-	while (curpos != l.head){
+	while (curpos!=l.tail){
 		curpos = curpos->next;
-		if(iter++ %2 == 0)
-			result.tail = result.tail->next;
+		if((++iter %2) == 0){
+			result.head = result.head->next;
+		}
 	}
-	result.head = result.tail->next;
+
+	result.tail = result.head->next;
+
 	return result;
+	
 }
 
-Sublist list_merge(Sublist leftlist, Sublist rightlist, OrderFunctor f){
-	if(leftlist.head == NULL)
+Sublist list_merge(Sublist leftlist, Sublist rightlist,OrderFunctor f){
+
+	printf("leftlist : %d->%d\n",leftlist.head->value,leftlist.tail->value);
+	printf("rightlist : %d->%d\n\n",rightlist.head->value,rightlist.tail->value);
+	if(leftlist.head==NULL){
 		return rightlist;
-	if(rightlist.head==NULL)
+	}
+	if(rightlist.head==NULL){
 		return leftlist;
+	}
 
-	Sublist result;
-
-	if (f(leftlist.head->value,rightlist.head->value)){
-		result.head = leftlist.head;
-		leftlist.head = leftlist.head->next;
-		result.tail = list_merge(leftlist,rightlist,f).tail;
+	LinkedElement *detached_elem;
+	if(f(leftlist.head->value,rightlist.head->value)){
+		//detach first elem of the leftlist
+		detached_elem = leftlist.head;
+		detached_elem->next->previous = detached_elem->previous;
+		detached_elem->previous->next = detached_elem->next;
+		leftlist.head = leftlist.head != leftlist.tail ? detached_elem->next : NULL;
+		
 	}
 	else{
-		result.head = rightlist.head;
-		rightlist.head = rightlist.head->next;
-		result.tail = list_merge(leftlist,rightlist,f).tail;
+		//detach first elem of the rightlist
+		detached_elem = rightlist.head;
+		detached_elem->next->previous = detached_elem->previous;
+		detached_elem->previous->next = detached_elem->next;
+
+		rightlist.head = leftlist.head != rightlist.tail ? detached_elem->next : NULL;
 	}
-	return result;
+
+	Sublist merged = list_merge(leftlist,rightlist,f);
+
+	//adding the element at the begining of the merged list.
+	merged.head->previous->next = detached_elem;
+	detached_elem->previous = merged.head->previous;
+	merged.head->previous = detached_elem;
+	detached_elem->next = merged.head;
+
+	merged.head = detached_elem;
+
+	return merged;
 }
 
-Sublist list_mergesort(Sublist l, OrderFunctor f){
-	//case where the list is a singleton or empty (NULL, NULL)
-	if(l.head == l.tail){
-		return l;
-	}
-	printf("l values :(%d,%d)\n",l.tail->value,l.head->value);
-	
-	Sublist tmp_list = list_split(l);
-	Sublist right;
-	Sublist left;
 
-	left.tail = l.tail;
-	left.head = tmp_list.head;
-
-	right.tail =  tmp_list.head == tmp_list.tail? NULL : tmp_list.head->next;
-	right.head =  tmp_list.head == tmp_list.tail? NULL : l.head;
-	
-	//sorting the two sublist
-	// printf("left values :(%d,%d)\n",left.tail->value,left.head->value);
-	// printf("right values :(%d,%d)\n",right.tail->value,right.head->value);
-	for(int i=0;i<50000;i++);
-	right= list_mergesort(right,f);
-	left = list_mergesort(left ,f);
-
-	//merging the two sublist
-
-	return list_merge(left,right,f);
-}
 // #endregion
 
 /*-----------------------------------------------------------------*/
@@ -280,15 +278,52 @@ List* list_map(List* l, ListFunctor f, void* environment) {
 
 /*-----------------------------------------------------------------*/
 
+int printLista(int i, void* env){
+	fprintf((FILE*)env, "%d ", i);
+	return i;
+}
+
+bool grt(int i, int j) {
+	return i>j;
+}
+
 List* list_sort(List* l, OrderFunctor f) {
+	(void)f;
 	Sublist sub_l;
-	sub_l.head = l->sentinel->previous;
-	sub_l.tail = l->sentinel->next;
+	sub_l.head = l->sentinel->next;
+	sub_l.tail = l->sentinel->previous;
 
-	sub_l = list_mergesort(sub_l,f);
+	List * test = list_create();
+	list_push_back(test,0);
+	list_push_back(test,1);
+	list_push_back(test,2);
+	list_push_back(test,3);
+	list_push_back(test,4);
+	list_push_back(test,5);
+	list_push_back(test,6);
+	list_push_back(test,7);
 
-	l->sentinel->previous = sub_l.head;
-	l->sentinel->next = sub_l.tail;
+	list_map(test,printLista,stdout);
+	printf("\n");
+
+	sub_l.head = test->sentinel->next;
+	sub_l.tail = test->sentinel->previous;
+
+	Sublist left,right;
+	Sublist tmp_list = list_split(sub_l);
+
+	left.head = sub_l.head;
+	left.tail = tmp_list.head;
+
+	right.head = tmp_list.tail;
+	right.tail = sub_l.tail;
+
+
+
+	list_merge(left,right,grt);
+
+
+	
 
 	return l;
 }
