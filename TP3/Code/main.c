@@ -245,6 +245,8 @@ int main(int argc, char** argv){
 		list_map(l, printList, stdout);
 		printf("\n");
 
+		test_sort();//!toremove
+
 		list_delete(&l);
 	}
 	return 1;

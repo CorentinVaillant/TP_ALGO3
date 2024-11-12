@@ -30,6 +30,8 @@ typedef struct s_List List;
 typedef List* ptrList;
 /** @}*/
 
+void test_sort();//!toremove
+
 /*-----------------------------------------------------------------*/
 
 /** \defgroup Functors Functions prototypes that could be used with some operators on List.

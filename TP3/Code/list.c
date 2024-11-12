@@ -1,5 +1,5 @@
 #include <stdio.h>
-#
+
 #include <stdlib.h>
 #include <assert.h>
 
@@ -296,16 +296,55 @@ List* list_map(List* l, ListFunctor f, void* environment) {
 
 /*-----------------------------------------------------------------*/
 
-int printLista(int i, void* env){
-	fprintf((FILE*)env, "%d ", i);
-	return i;
+
+
+void assert_is_sorted(List *l, OrderFunctor f){
+	if(list_is_empty(l))
+		return ;
+	
+	int val = list_front(l);
+	for(int i = 1; i<list_size(l);i++){
+		assert(f(val, list_at(l,i)));
+		val = list_at(l,i);
+	} 
+	return;
 }
 
-bool grt(int i, int j) {
+bool gta(int i, int j) {
 	return i>j;
 }
 
+void test_sort(){ //!toremove
+	#include <time.h>
+	//generate the seed :
+	srand(time(NULL));
+
+	for(int i=0; i<256;i++){
+
+		int size = rand()%256;
+		List *l = list_create();
+
+		for(int i = 0; i<size; i++){
+			list_push_front(l,rand());
+		}
+
+		printf("list of size :%d\n",size);
+		printf("sorting...\n");
+		list_sort(l,gta);
+		printf("sorted\n");
+		assert_is_sorted(l,gta);
+		printf("deleting list\n");
+
+		list_delete(&l);
+	}
+
+	return;
+}
+
+
 List* list_sort(List* l, OrderFunctor f) {
+	if(list_is_empty(l))
+		return l;
 	
 	Sublist sub_l;
 	sub_l.head = l->sentinel->next;
@@ -316,42 +355,5 @@ List* list_sort(List* l, OrderFunctor f) {
 	l->sentinel->next = sub_l.head;
 	l->sentinel->previous = sub_l.tail;
 
-
 	return l;
 }
-
-/*
-
-(void)f;
-	Sublist sub_l;
-	sub_l.head = l->sentinel->next;
-	sub_l.tail = l->sentinel->previous;
-
-	List * test = list_create();
-	list_push_back(test,0);
-	list_push_back(test,1);
-	list_push_back(test,2);
-	list_push_back(test,3);
-	list_push_back(test,4);
-	list_push_back(test,5);
-	list_push_back(test,6);
-	list_push_back(test,7);
-
-	list_map(test,printLista,stdout);
-	printf("\n");
-
-	sub_l.head = test->sentinel->next;
-	sub_l.tail = test->sentinel->previous;
-
-	Sublist left,right;
-	Sublist tmp_list = list_split(sub_l);
-
-	left.head = sub_l.head;
-	left.tail = tmp_list.head;
-
-	right.head = tmp_list.tail;
-	right.tail = sub_l.tail;
-
-
-
-	list_merge(left,right,grt);*/
