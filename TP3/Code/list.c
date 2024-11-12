@@ -55,46 +55,64 @@ Sublist list_split(Sublist l){
 	
 }
 
-Sublist list_merge(Sublist leftlist, Sublist rightlist,OrderFunctor f){
+Sublist list_merge(Sublist leftlist, Sublist rightlist,OrderFunctor f){//? I think that works
 
-	printf("leftlist : %d->%d\n",leftlist.head->value,leftlist.tail->value);
-	printf("rightlist : %d->%d\n\n",rightlist.head->value,rightlist.tail->value);
-	if(leftlist.head==NULL){
+	Sublist merged;
+	Sublist *to_treat;
+	LinkedElement *elem;
+	
+	if(leftlist.head == NULL){
 		return rightlist;
 	}
-	if(rightlist.head==NULL){
+	else if(rightlist.head == NULL){
 		return leftlist;
 	}
 
-	LinkedElement *detached_elem;
-	if(f(leftlist.head->value,rightlist.head->value)){
-		//detach first elem of the leftlist
-		detached_elem = leftlist.head;
-		detached_elem->next->previous = detached_elem->previous;
-		detached_elem->previous->next = detached_elem->next;
-		leftlist.head = leftlist.head != leftlist.tail ? detached_elem->next : NULL;
-		
-	}
-	else{
-		//detach first elem of the rightlist
-		detached_elem = rightlist.head;
-		detached_elem->next->previous = detached_elem->previous;
-		detached_elem->previous->next = detached_elem->next;
 
-		rightlist.head = leftlist.head != rightlist.tail ? detached_elem->next : NULL;
-	}
+	//on choisi la list à traiter et on assigne elem
+	to_treat = f(leftlist.head->value,rightlist.head->value) ? &leftlist : &rightlist;
+	elem = to_treat->head;
+	to_treat->head = to_treat->head != to_treat->tail ? to_treat->head->next : NULL;
+	to_treat->tail = to_treat->head != NULL ? to_treat->tail : NULL;
 
-	Sublist merged = list_merge(leftlist,rightlist,f);
+	//on retire elem de la list :
+	elem->next->previous = elem->previous;
+	elem->previous->next = elem->next;
 
-	//adding the element at the begining of the merged list.
-	merged.head->previous->next = detached_elem;
-	detached_elem->previous = merged.head->previous;
-	merged.head->previous = detached_elem;
-	detached_elem->next = merged.head;
+	elem->next = elem->previous = NULL;
 
-	merged.head = detached_elem;
+	//on fusionne les deux sous listes, sans elem 
+	merged = list_merge(leftlist,rightlist,f);
+
+	//on rajoute elem au début de cette list
+	merged.head->previous->next = elem;
+	elem->previous = merged.head->previous;
+
+	merged.head->previous = elem;
+	elem->next = merged.head;
+
+	merged.head = elem;
 
 	return merged;
+}
+
+Sublist list_mergesort(Sublist l, OrderFunctor f){
+	if(l.head == l.tail){
+		return l;
+	}
+	
+	//Split the list in two
+	Sublist left,right;
+	Sublist tmp_list = list_split(l);
+
+	left.head = l.head;
+	left.tail = tmp_list.head;
+
+	right.head = tmp_list.tail;
+	right.tail = l.tail;
+
+	return list_merge( list_mergesort(left,f),list_mergesort(right,f),f);
+
 }
 
 
@@ -288,7 +306,23 @@ bool grt(int i, int j) {
 }
 
 List* list_sort(List* l, OrderFunctor f) {
-	(void)f;
+	
+	Sublist sub_l;
+	sub_l.head = l->sentinel->next;
+	sub_l.tail = l->sentinel->previous;
+
+	sub_l = list_mergesort(sub_l,f);
+
+	l->sentinel->next = sub_l.head;
+	l->sentinel->previous = sub_l.tail;
+
+
+	return l;
+}
+
+/*
+
+(void)f;
 	Sublist sub_l;
 	sub_l.head = l->sentinel->next;
 	sub_l.tail = l->sentinel->previous;
@@ -320,11 +354,4 @@ List* list_sort(List* l, OrderFunctor f) {
 
 
 
-	list_merge(left,right,grt);
-
-
-	
-
-	return l;
-}
-
+	list_merge(left,right,grt);*/
