@@ -321,7 +321,7 @@ void test_sort(){ //!toremove
 
 	for(int i=0; i<256;i++){
 
-		int size = rand()%256;
+		int size = i;
 		List *l = list_create();
 
 		for(int i = 0; i<size; i++){
@@ -334,6 +334,7 @@ void test_sort(){ //!toremove
 		printf("sorted\n");
 		assert_is_sorted(l,gta);
 		printf("deleting list\n");
+		printf("\n");
 
 		list_delete(&l);
 	}
