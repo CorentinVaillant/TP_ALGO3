@@ -30,7 +30,6 @@ typedef struct s_List List;
 typedef List* ptrList;
 /** @}*/
 
-void test_sort();//!toremove
 
 /*-----------------------------------------------------------------*/
 

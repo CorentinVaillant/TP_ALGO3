@@ -298,51 +298,6 @@ List* list_map(List* l, ListFunctor f, void* environment) {
 
 
 
-void assert_is_sorted(List *l, OrderFunctor f){
-	if(list_is_empty(l))
-		return ;
-	
-	int val = list_front(l);
-	for(int i = 1; i<list_size(l);i++){
-		assert(f(val, list_at(l,i)));
-		val = list_at(l,i);
-	} 
-	return;
-}
-
-bool gta(int i, int j) {
-	return i>j;
-}
-
-void test_sort(){ //!toremove
-	#include <time.h>
-	//generate the seed :
-	srand(time(NULL));
-
-	for(int i=0; i<256;i++){
-
-		int size = i;
-		List *l = list_create();
-
-		for(int i = 0; i<size; i++){
-			list_push_front(l,rand());
-		}
-
-		printf("list of size :%d\n",size);
-		printf("sorting...\n");
-		list_sort(l,gta);
-		printf("sorted\n");
-		assert_is_sorted(l,gta);
-		printf("deleting list\n");
-		printf("\n");
-
-		list_delete(&l);
-	}
-
-	return;
-}
-
-
 List* list_sort(List* l, OrderFunctor f) {
 	if(list_is_empty(l))
 		return l;
