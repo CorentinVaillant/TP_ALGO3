@@ -5,4 +5,6 @@ TP2/Code/documentation/html/*
 
 *.vscode/
 
-*/expr_ex1
+*expr_ex1
+*list_test
+*skiplisttest
