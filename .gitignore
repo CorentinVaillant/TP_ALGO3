@@ -1,9 +1,11 @@
+*.vscode/
+
 *.out
 *.o
-TP1/Exercice1/documentation/html/*
-TP2/Code/documentation/html/*
 
-*.vscode/
+*/documentation/html/*
+*html
+
 
 *expr_ex1
 *list_test
