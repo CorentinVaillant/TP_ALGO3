@@ -68,7 +68,6 @@ Sublist list_merge(Sublist leftlist, Sublist rightlist,OrderFunctor f){//? I thi
 		return leftlist;
 	}
 
-
 	//on choisi la list à traiter et on assigne elem
 	to_treat = f(leftlist.head->value,rightlist.head->value) ? &leftlist : &rightlist;
 	elem = to_treat->head;
@@ -125,7 +124,7 @@ List* list_create(void) {
 	List* l =  unwrapMalloc(sizeof(List)+sizeof(LinkedElement));
 	LinkedElement *p_sentinel = (LinkedElement *)(l+1);
 
-	p_sentinel->value = 0xCACA;
+	p_sentinel->value = 0x4B1D; //debug purpose line
 	p_sentinel->next = p_sentinel;
 	p_sentinel->previous = p_sentinel;
 	l->size=0;
@@ -226,6 +225,7 @@ List* list_insert_at(List* l, int p, int v) {
 	LinkedElement *cur_elem = l->sentinel->next;
 	LinkedElement *to_add = unwrapMalloc(sizeof(LinkedElement));
 	to_add->value = v;
+
 	for(int i = 0 ; i<p ; i++){
 		cur_elem = cur_elem->next;
 	}
@@ -282,6 +282,9 @@ int list_size(const List* l) {
 /*-----------------------------------------------------------------*/
 
 List* list_map(List* l, ListFunctor f, void* environment) {
+	if(l->size == 0)
+		return l;
+
 	LinkedElement * elem=l->sentinel;
 
 	do{
@@ -295,8 +298,6 @@ List* list_map(List* l, ListFunctor f, void* environment) {
 }
 
 /*-----------------------------------------------------------------*/
-
-
 
 List* list_sort(List* l, OrderFunctor f) {
 	if(list_is_empty(l))
