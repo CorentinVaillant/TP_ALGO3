@@ -55,7 +55,7 @@ Sublist list_split(Sublist l){
 	
 }
 
-Sublist list_merge(Sublist leftlist, Sublist rightlist,OrderFunctor f){//? I think that works
+Sublist list_merge(Sublist leftlist, Sublist rightlist,OrderFunctor f){
 
 	Sublist merged;
 	Sublist *to_treat;

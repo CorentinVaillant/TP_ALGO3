@@ -1,17 +1,17 @@
 # Compte rendu de la séquence 3 - algo3
 
-Durant cette séquence nous avons implémenter une liste doublement chaînée. Nous devions coder plusieur fonctionnaliter, tel que l’insertion d’élément, une fonction `map` ou encore un trifusion.
-Le but de ce document est d’expliquer mes choix d’implémentations, et de données un analyse de mon travail.
+Durant cette séquence, nous avons implémenté une liste doublement chaînée. Nous devions coder plusieurs fonctionnalités, telles que l’insertion d’élément, une fonction `map` ou encore un trifusion.
+Le but de ce document est d’expliquer mes choix d’implémentations, et de données une analyse de mon travail.
 
 ## Implémentation
 
-- [Operateurs contructeur et déstruction](#operateurs-constructeur-et-déstruction)
+- [Opérateurs constructeurs et destruction](#opérateurs-constructeurs-et-destruction)
 - [Opérateurs](#opérateurs)
 - [Map](#map)
 - [Trifusion](#trifusion)
-- [fonction auxiliaires](#fonction-auxiliaires)
+- [fonction auxiliaire](#fonction-auxiliaire)
 
-### Operateurs constructeur et déstruction
+### Opérateurs constructeurs et destruction
 
 #### list_create()
 
@@ -23,17 +23,17 @@ List* list_create(void) {
  List* l =  unwrapMalloc(sizeof(List)+sizeof(LinkedElement));
  LinkedElement *p_sentinel = (LinkedElement *)(l+1);
 
- /*sentinel asignation*/
+ /*sentinel assignation*/
 
  return l;
 }
 ```
 
-L’implémentation est relativement simple. On alloue la mémoire puis l’on assigne une sentinel a notre liste.
+L’implémentation est relativement simple. On alloue la mémoire puis l’on assigne une sentinelle à notre liste.
 
 ##### gestion de la mémoire
 
-Cette fonction utilise unwrapMaloc, afin d’alouer la mémoire pour notre liste et notre sentinel, dans un but de continuité de la mémoire, une seul alocation est faite, cela permet aussi qu’au moment de détruire la liste, un seul `free` sera utiliser afin de libérer à la fois la sentinel et la liste.
+Cette fonction utilise unwrapMaloc, afin d’allouer la mémoire pour notre liste et notre sentinelle, dans un but de continuité de la mémoire, une seule allocation est faite, cela permet aussi qu’au moment de détruire la liste, un seul `free` sera utilisé dans le but de libérer à la fois la sentinelle et la liste.
 
 #### push_back et push_front
 
@@ -49,13 +49,13 @@ List* list_push_back(List* l, int v) {
 }
 ```
 
-Cette implémentation est encore plus simple que la précédente. On aloue simplement un nouvelle élément et on l’assigne à la liste. grâce à la sentinel il n’y a pas de dijonction de cas a faire.
+Cette implémentation est encore plus simple que la précédente. On alloue simplement un nouvel élément et on l’assigne à la liste. Grâce à la sentinelle, il n’y a pas de disjonction de cas à faire.
 
-L’implémentation de `push_front` est similaire, avec pour unique changement d’assigner au début de la liste.
+L’implémentation de `push_front` est similaire, pour unique changement d’assigner au début de la liste.
 
 #### list_delete
 
-Cette fonction vide et libére la mémoire occupé par une liste
+Cette fonction vide et libéré la mémoire occupée par une liste
 
 ```c
 void list_delete(ptrList* l) {
@@ -69,22 +69,22 @@ void list_delete(ptrList* l) {
 }
 ```
 
-On vide dans un  premier temps la liste de tous ses éléments, puis ensuite on libére la mémoire occupée par la liste.
+On vide dans un  premier temps la liste de tous ses éléments, ensuite, on libère la mémoire occupée par la liste.
 
 ##### Gestion de la mémoire
 
-Un seul `free` est requis ici afin de libérer la sentinel et la structure liste, car à la création de la liste, une seul allocation a été utiliser pour alouer la liste et sa sentinel.
+Un seul `free` est requis ici afin de libérer la sentinelle et la structure liste, car à la création de la liste, une seule allocation a été utilisé pour allouer la liste et sa sentinelle.
 
 ### Opérateurs
 
-- [supression d’éléments](#supression-déléments)
+- [suppression d’éléments](#suppression-déléments)
 - [obtention d’information sur la liste](#obtention-dinformation-sur-la-liste)
 - [insertion d’éléments](#insertion-déléments)
 
-#### Supression d’éléments
+#### Suppression d’éléments
 
-Au cours de l’utilisation de ces liste, nous somme amener à suprimer des éléments, pour cela plusieur fonction sont fournis par cette implémentation.
-Pour cela il nous ai demander d’implémenter trois fonction `list_pop_front`, `list_pop_back` et `list_pop_at`, qui, réspectivement, supprime un élément au début de la liste, à sa fin, et a un indice précis.  
+Au cours de l’utilisation de ces listes, nous sommes amenés à supprimer des éléments, pour cela plusieurs fonctions sont fournies par cette implémentation.
+Pour cela, il nous est demandé d’implémenter trois fonctions `list_pop_front`, `list_pop_back` et `list_pop_at`, qui, respectivement, supprime un élément au début de la liste, à sa fin, et a un indice précis.  
 On se penche sur l’exemple de `list_pop_front`.
 
 ```c
@@ -99,14 +99,14 @@ List* list_pop_front(List* l) {
 }
 ```
 
-Cette implémentation est simple, on retire l’élément de la liste, puis on libére, la mémoire, et évidemment on reduit la taill de la liste de 1.  
-L’implémentation est très similaire pour les autres fonctions, avec pour détail que la fonction `list_pop_at` prend un entier en paramétre afin de savoir quel élément retitirer, et que dans son implémentation elle parcours les éléments de la liste avant de trouver celui qu’elle doit traiter, sa compléxiter est donc en O(n), avec n le nombre d’éléments de la liste.
+Cette implémentation est simple, on retire l’élément de la liste, puis on libère, la mémoire, et évidemment on réduit la taille de la liste de 1.  
+L’implémentation est très similaire pour les autres fonctions, avec pour détail que la fonction `list_pop_at` prend un entier en paramètre afin de savoir quel élément retirer, et que dans son implémentation, elle parcourt les éléments de la liste avant de trouver celui qu’elle doit traiter, sa complexité est donc en O(n), avec n le nombre d’éléments de la liste.
 
 #### Obtention d’information sur la liste
 
-Nous devons pouvoir donner la possibiliter d’obtenir certaines informations sur la liste, sa taille, si elle est vide, et la valeur d’un élément en une certaine position.
+Nous devons pouvoir donner la possibilité d’obtenir certaines informations sur la liste, sa taille, si elle est vide, et la valeur d’un élément en une certaine position.
 
-Afin de savoir sa taille ou si elle est vide nous avons la fonction `list_size`.
+Afin de savoir sa taille ou si elle est vide, nous avons la fonction `list_size`.
 
 ```c
 int list_size(const List* l) {
@@ -114,12 +114,12 @@ int list_size(const List* l) {
 }
 ```
 
-Cette fonction renvoie simplement la taille de la liste enregistrer dans son champs `size`.
-Afin de savoir si la liste est vide, nous avons `list_is_empty`, qui fonctionne comme cette fonction, mais en nous renvoyant un booléan correspondant a si `size` est nulle.  
+Cette fonction renvoie simplement la taille de la liste enregistrer dans son champ `size`.
+Dans le but de savoir si la liste est vide, nous avons `list_is_empty`, qui fonctionne comme cette fonction, mais en nous renvoyant un booléen correspondant à si `size` est nulle.  
 
-Afin d’obtenir la valeur de certains élément de la liste nous avons les fonction `list_front`, `list_back` et `list_at`, qui, réspéctivement accédent au première élément de la liste, le dernière élément, et celui présent a un certaine indice.
+Afin d’obtenir la valeur de certains éléments de la liste, nous avons les fonctions `list_front`, `list_back` et `list_at`, qui, respectivement, accèdent au premier élément de la liste, le dernier élément, et celui présent a un certain indice.
 
-Voici l’implémentation de `list_front`
+Voici l’implémentation de`list_front`
 
 ```c
 int list_front(const List* l) {
@@ -129,11 +129,11 @@ int list_front(const List* l) {
 }
 ```
 
-Cette fonction nous renvoie simplement la valeur de l’élément qui vient après la sentinel, pour `list_back` on fait pareil en renvoyant l’élément qui vient avant la sentinel. Dans le cas de `list_at` on parcours la liste jusqu’à arriver à l’élément souhaiter, sa complexité est donc de O(n).
+Cette fonction nous renvoie simplement la valeur de l’élément qui vient après la sentinelle, pour `list_back` on fait pareil en renvoyant l’élément qui vient avant la sentinelle. Dans le cas de `list_at` on parcourt la liste jusqu’à arriver à l’élément souhaité, sa complexité est donc de O(n).
 
 #### Insertion d'éléments
 
-L'implémentation donne la possibiliter d'inserer un élément à un certaine indice précis avec la fonction `list_insert_at`
+L'implémentation donne la possibilité d'insérer un élément à un certain indice précis avec la fonction `list_insert_at`
 
 ```c
 List* list_insert_at(List* l, int p, int v) {
@@ -153,12 +153,12 @@ List* list_insert_at(List* l, int p, int v) {
 }
 ```
 
-Cette fonction ne fait que parcourir la liste jusqu'au p-ème élément, puis ajoute le nouvel élément créer avant cette élément, afin que notre valeur soit bien en position p. On augmente la taille de la liste à la fin de cette opération.
+Cette fonction ne fait que parcourir la liste jusqu'au p-ème élément, puis ajoute le nouvel élément créé avant cet élément, afin que notre valeur soit bien en position p. On augmente la taille de la liste à la fin de cette opération.
 
 ### Map
 
-Notre implémentation offre la possibilité d'appliquer une fonction sur chacun des éléments de la liste avec une fontion dite de "mapping", en utilisant donc la fonction `list_map`.  
-Cette fonction nous permet de modifier une liste avec une fonction, sans avoir a retirer et remettre chaque éléments un par un.
+Notre implémentation offre la possibilité d'appliquer une fonction sur chacun des éléments de la liste avec une fonction dite de "mapping", en utilisant donc la fonction `list_map`.  
+Cette fonction nous permet de modifier une liste avec une fonction, sans avoir à retirer et remettre chaque élément un par un.
 
 ```c
 List* list_map(List* l, ListFunctor f, void* environment) {
@@ -175,130 +175,156 @@ List* list_map(List* l, ListFunctor f, void* environment) {
 }
 ```
 
-L'implémentation est aussi relativement simple, on parcours simplement tout les éléments de la liste, en y appliquant la fonction donner `ListFunctor f`.
+L'implémentation est aussi relativement simple, on parcourt simplement tous les éléments de la liste, en y appliquant la fonction donner `ListFunctor f`.
 
 ### Trifusion
 
-La partie la plus dur à produire de cette implémentation fût celle de l'écriture d'une fonction de trie, à partir de l'algorithme de trifusion.
+La partie la plus dure à produire de cette implémentation fût celle de l'écriture d'une fonction de trie, à partir de l'algorithme de trifusion.
 
-Afin de pouvoir avoir une implémentation très efficace nous avons utiliser une structure résument une liste (une sous liste dans notre cas) du nom de `Sublist`
+Afin de pouvoir avoir une implémentation très efficace, nous avons utilisé une structure résument une liste (une sous-liste dans notre cas) du nom de `Sublist`
 
 ```c
-typedef struct s_Sublist{
- LinkedElement * head;//first elem
- LinkedElement * tail;//last elem
+
+typedef  struct s_Sublist{
+
+LinkedElement * head;//first elem
+LinkedElement * tail;//last elem
 }Sublist;
 ```
 
-Elle représente une liste en ne pointant uniquement qu'au première élément, la tête, et au dernier, la queue.  
-Cette structure n'est volontairement pas placer dans `list.h` afin que l'utilisateur n'y est pas accées, car elle est utile uniquement dans l'implémentation de notre algorithme de trie.  
+Elle représente une liste en ne pointant uniquement qu'au premier élément, la tête et au dernier, la queue.
 
-Puis une fonction list_split à pour but de séparer une liste en deux sous-liste.
+Cette structure n'est volontairement pas placée dans `list.h` afin que l'utilisateur n'y est pas accès, car elle est utile exclusivement dans l'implémentation de notre algorithme de trie.
+
+Puis une fonction list_split a pour but de séparer une liste en deux sous-listes.
 
 ```c
 Sublist list_split(Sublist l){
- Sublist result;
- result.head = l.head;
+Sublist result;
+result.head = l.head;
 
- LinkedElement *curpos = l.head;
- __uint8_t iter = 0;
- while (curpos!=l.tail){
-  /*On parcour la liste, en passant à l'élément suivant de result.head qu'une fois sur deux, afin d'atteindre la moitié*/
- }
+LinkedElement *curpos = l.head;
 
- result.tail = result.head->next;
- return result;
- 
+__uint8_t iter =  0;
+
+while (curpos!=l.tail){
+/*On parcour la liste, en passant à l'élément suivant de result.head qu'une fois sur deux, afin d'atteindre la moitié*/
+}
+
+result.tail = result.head->next;
+return result;
+
 }
 ```
 
-Cette fonction parcour `Sublist l` avec un élément qui passe à sont suivant qu'une fois sur deux, afin de pouvoir atteindre le millieu de la liste.  
+Cette fonction parcourt `Sublist l` avec un élément qui passe à son suivant qu'une fois sur deux, afin de pouvoir atteindre le milieu de la liste.
 
-Pour implémenter le triefusion nous avons besoin d'une fonction nous permettant de fusionner deux liste triées en une seule triée, pour cela une fonction `list_merge` est écrite.
+Pour implémenter le trie fusion, nous avons besoin d'une fonction nous permettant de fusionner deux listes triées en une seule triée, pour cela une fonction `list_merge` est écrite.
 
 ```c
-Sublist list_merge(Sublist leftlist, Sublist rightlist,OrderFunctor f){//? I think that works
+Sublist list_merge(Sublist leftlist, Sublist rightlist,OrderFunctor f){
 
- Sublist merged;
- Sublist *to_treat;
- LinkedElement *elem;
- 
- //si une des deux liste est vide on renvoie l'autre
- if(leftlist.head == NULL){
-  return rightlist;
- }
- else if(rightlist.head == NULL){
-  return leftlist;
- }
+Sublist merged;
+Sublist *to_treat;
+LinkedElement *elem;
 
- /*on choisi la list à traiter et on assigne elem*/
+//si une des deux liste est vide on renvoie l'autre
 
- /*on retire elem de la list */
+if(leftlist.head ==  NULL){
 
- //on fusionne les deux sous listes, sans elem 
- merged = list_merge(leftlist,rightlist,f);
+return rightlist;
+}
 
- /*on rajoute elem au début de cette list*/
+else  if(rightlist.head ==  NULL){
 
- return merged;
+return leftlist;
+}
+
+/*on choisi la list à traiter et on assigne elem*/
+
+/*on retire elem de la list */
+
+//on fusionne les deux sous listes, sans elem
+
+merged =  list_merge(leftlist,rightlist,f);
+
+  
+
+/*on rajoute elem au début de cette list*/
+
+return merged;
 }
 ```
 
-Cette fonction fonctionne en regardant le première élément des deux listes, en les comparant, on retire l'élément qui est ordonné le plus bas, et on fusionne les deux sous listes tirées entre elle avec le même algorithme, puis on atache notre élément en tête de liste, il n'y a plus qu'à retourner notre élément.
+Cette fonction fonctionne en regardant le premier élément des deux listes, en les comparant, on retire l'élément qui est ordonné le plus bas, et on fusionne les deux sous listes tirées entre elle avec le même algorithme, puis on attache notre élément en tête de liste, il n'y a plus qu'à retourner notre élément.
 
-On a aussi l'utilisation d'une fonction qui va triée une sous-liste `list_mergesort`
+On a aussi l'utilisation d'une fonction qui va trier une sous-liste `list_mergesort`
 
 ```c
 Sublist list_mergesort(Sublist l, OrderFunctor f){
- if(l.head == l.tail){
-  return l;
- }
- 
- /*séparation de la liste en deux*/
+if(l.head == l.tail){
+return l;
+}
 
- //on retourne une fusion des deux sous listes triée
- return list_merge( list_mergesort(left,f),list_mergesort(right,f),f);
+/*séparation de la liste en deux*/
+
+//on retourne une fusion des deux sous listes triée
+
+return  list_merge( list_mergesort(left,f),list_mergesort(right,f),f);
+
+  
 
 }
 ```
 
-Cette fonction renvoie donc une sous liste triée, grâce à une application direct du triefusion, en utilisant les deux fonction definis au dessus.  
-Toutes les fonction retournant une `Sublist` ne sont pas publique, c'est à dire que l'utilisateur ne peut pas y accéder en utilisant `list.h` avec `list.c`, si elle sont privé, c'est car elle offre des fonctions écrite uniquement pour être utiles pour notre algorithme de tri. On pose donc une fonction que l'utilisateur utilisera pour trié sa liste, `list_sort`.
+Cette fonction renvoie donc une sous-liste triée, grâce à une application directe du tri fusion, en utilisant les deux fonctions défini au-dessus.
+
+Toutes les fonctions retournant une `Sublist` ne sont pas publics, c'est-à-dire que l'utilisateur ne peut pas y accéder en utilisant `list.h` avec `list.c`, si elles ont privé, c'est, car elle offre des fonctions écrites uniquement pour être utiles pour notre algorithme de tri. On pose donc une fonction que l'utilisateur utilisera pour trier sa liste, `list_sort`.
 
 ```c
-List* list_sort(List* l, OrderFunctor f) {
- if(list_is_empty(l))
-  return l;
- 
- Sublist sub_l;
- /*convertion de l en Sublist*/
 
- sub_l = list_mergesort(sub_l,f);
+List*  list_sort(List*  l, OrderFunctor f) {
 
- /*convertion de sub_l en List*/
+if(list_is_empty(l))
+return l;
 
- return l;
+Sublist sub_l;
+/*convertion de l en Sublist*/
+
+  
+
+sub_l =  list_mergesort(sub_l,f);
+
+  
+
+/*convertion de sub_l en List*/
+
+return l;
 }
 ```
 
-Cette fonction ne fait que convertir une liste `List` en liste `Sublist`, pour pouvoir la passer dans notre fonction de tri, puis on reconvertie le résultat en liste `list` que l'on retourne. L'utilisateur peut donc trier une liste avec l'ordonnace de sont choix, grâce au paramétre `OrderFunctor f`.
+Cette fonction ne fait que convertir une liste `List` en liste `Sublist`, pour pouvoir la passer dans notre fonction de tri, puis on reconvertit le résultat en liste `list` que l'on retourne. L'utilisateur peut donc trier une liste avec l'ordonnance de son choix, grâce au paramètre `OrderFunctor f`.
 
-### Fonction auxiliaires
+### Fonction auxiliaire
 
 #### unwrapMaloc
 
-Pour éviter les comportements non définie qui peuvent subvenire quand une allocation mémoire échoue avec la fonction `malloc`
+Pour éviter les comportements non définis qui peuvent subvenir quand une allocation mémoire échoue avec la fonction `malloc`
+
 Une fonction `unwrapMalloc` est définie.
 
 ```c
-void * unwrapMalloc(size_t size){
- void * result = malloc(size);
- if (!result){
-  fprintf(stderr,"could not initialize %ld bytes into the heap\n",size);
-  perror("stopping program ");
-  exit(1);
- }
- return result;
+
+void  *  unwrapMalloc(size_t  size){
+
+void  * result =  malloc(size);
+
+if (!result){
+fprintf(stderr,"could not initialize %ld bytes into the heap\n",size);
+perror("stopping program ");
+exit(1);
+}
+return result;
 }
 ```
 
