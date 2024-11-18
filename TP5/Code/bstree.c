@@ -93,20 +93,50 @@ void bstree_add(ptrBinarySearchTree* t, int v) {
 }
 
 const BinarySearchTree* bstree_search(const BinarySearchTree* t, int v) {
-    (void)t; (void)v;
-    return NULL;
+    const BinarySearchTree *curr = t;
+    while (!bstree_empty(curr) && bstree_key(curr) != v)
+        curr = bstree_key(curr) > v ? curr->left : curr->right;
+    
+    return curr;
+    
 }
 
 const BinarySearchTree* bstree_successor(const BinarySearchTree* x) {
     assert(!bstree_empty(x));
-    (void)x;
-    return NULL;
+    BinarySearchTree *curr ;
+    if(!bstree_empty(x->right)){
+        curr = x->right;
+        while (!bstree_empty(curr->left)){
+            curr = curr->left;
+        }
+    }
+    else {
+        curr = x->parent;
+        while (!bstree_empty(curr) && x == curr->right){
+            x = curr;
+            curr = curr->parent;
+        }
+    }
+    return curr;
 }
 
 const BinarySearchTree* bstree_predecessor(const BinarySearchTree* x) {
     assert(!bstree_empty(x));
-    (void)x;
-    return NULL;
+        BinarySearchTree *curr ;
+    if(!bstree_empty(x->left)){
+        curr = x->left;
+        while (!bstree_empty(curr->right)){
+            curr = curr->right;
+        }
+    }
+    else {
+        curr = x->parent;
+        while (!bstree_empty(curr) && x == curr->left){
+            x = curr;
+            curr = curr->parent;
+        }
+    }
+    return curr;
 }
 
 void bstree_swap_nodes(ptrBinarySearchTree* tree, ptrBinarySearchTree from, ptrBinarySearchTree to) {
