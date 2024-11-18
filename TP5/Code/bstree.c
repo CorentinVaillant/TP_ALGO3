@@ -127,15 +127,34 @@ void bstree_remove(ptrBinarySearchTree* t, int v) {
 /*------------------------  BSTreeVisitors  -----------------------------*/
 
 void bstree_depth_prefix(const BinarySearchTree* t, OperateFunctor f, void* environment) {
-    (void)t; (void) f; (void)environment;
+    if(bstree_empty(t))
+        return;
+    
+    f(t,environment);
+    bstree_depth_prefix(bstree_left(t),f,environment);
+    bstree_depth_prefix(bstree_right(t),f,environment);
+    return;
 }
 
+//on remarque que cela affiche les valeurs dans l'ordre
 void bstree_depth_infix(const BinarySearchTree* t, OperateFunctor f, void* environment) {
-    (void)t; (void) f; (void)environment;
+    if(bstree_empty(t))
+        return;
+    
+    bstree_depth_infix(bstree_left(t),f,environment);
+    f(t,environment);
+    bstree_depth_infix(bstree_right(t),f,environment);
+    return;
 }
 
 void bstree_depth_postfix(const BinarySearchTree* t, OperateFunctor f, void* environment) {
-    (void)t; (void) f; (void)environment;
+    if(bstree_empty(t))
+        return;
+    
+    bstree_depth_postfix(bstree_left(t),f,environment);
+    bstree_depth_postfix(bstree_right(t),f,environment);
+    f(t,environment);
+    return;
 }
 
 void bstree_iterative_breadth(const BinarySearchTree* t, OperateFunctor f, void* environment) {
