@@ -158,7 +158,20 @@ void bstree_depth_postfix(const BinarySearchTree* t, OperateFunctor f, void* env
 }
 
 void bstree_iterative_breadth(const BinarySearchTree* t, OperateFunctor f, void* environment) {
-    (void)t; (void) f; (void)environment;
+    Queue* waiting_q = create_queue();
+    queue_push(waiting_q,t);
+    
+    while (!queue_empty(waiting_q)){
+        f(queue_top(waiting_q),environment);
+        if (!bstree_empty(bstree_left(queue_top(waiting_q))))
+            queue_push(waiting_q,bstree_left(queue_top(waiting_q)));
+        if (!bstree_empty(bstree_right(queue_top(waiting_q))))
+            queue_push(waiting_q,bstree_right(queue_top(waiting_q)));
+        queue_pop(waiting_q);
+        
+    }
+    
+    delete_queue(&waiting_q);
 }
 
 void bstree_iterative_depth_infix(const BinarySearchTree* t, OperateFunctor f, void* environment) {
