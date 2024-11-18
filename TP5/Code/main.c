@@ -4,7 +4,7 @@
 
 
 /* Define this for solving the exercice 1. */
-//#define EXERCICE_1
+#define EXERCICE_1
 /* Define this for solving the exercice 2. */
 //#define EXERCICE_2
 /* Define this for solving the exercice 3. */
