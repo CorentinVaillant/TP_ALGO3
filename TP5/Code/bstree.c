@@ -106,9 +106,8 @@ const BinarySearchTree* bstree_successor(const BinarySearchTree* x) {
     BinarySearchTree *curr ;
     if(!bstree_empty(x->right)){
         curr = x->right;
-        while (!bstree_empty(curr->left)){
+        while (!bstree_empty(curr->left))
             curr = curr->left;
-        }
     }
     else {
         curr = x->parent;
@@ -141,7 +140,7 @@ const BinarySearchTree* bstree_predecessor(const BinarySearchTree* x) {
 
 void bstree_swap_nodes(ptrBinarySearchTree* tree, ptrBinarySearchTree from, ptrBinarySearchTree to) {
     assert(!bstree_empty(*tree) && !bstree_empty(from) && !bstree_empty(to));
-    (void)tree; (void)from; (void)to;
+    
 }
 
 // t -> the tree to remove from, current -> the node to remove
