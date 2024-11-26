@@ -102,12 +102,21 @@ SkipList* buildlist(int num) {
 
 /*----------------------------------------------------------------------------------------------*/
 
+void printlist (int i, void * env){
+	fprintf(env,"%d ",i);
+}
+
 /** Exercice 1.
  	Programming and test of skiplist construction.
  */
+#define NB_CHAR 27
 void test_construction(int num){
-	(void) num;
+	SkipList * list = buildlist(num);
+
+	skiplist_map(list,printlist,stdout);
+	
 }
+#undef NB_CHAR
 
 /** Exercice 2.
  Programming and test of skiplist search operator.
