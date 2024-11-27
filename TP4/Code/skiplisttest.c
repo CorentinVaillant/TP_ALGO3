@@ -113,6 +113,7 @@ void printlist (int i, void * env){
 void test_construction(int num){
 	SkipList * list = buildlist(num);
 
+	printf("Skiplist (%d)\n",skiplist_size(list));
 	skiplist_map(list,printlist,stdout);
 	
 }
