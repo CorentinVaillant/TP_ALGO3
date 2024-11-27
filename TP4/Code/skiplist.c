@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <assert.h>
-
 #include "skiplist.h"
+
+
 #include "rng.h"
 
 /*<====================>*Macros*<====================>-------*/
@@ -40,14 +41,13 @@ struct s_DoubleLink{
 	struct s_Node * previous;
 } ;
 
+
 struct s_Node{
 	int val;
 	tabSize level; //DoubleLink tab size
 	DoubleLink *dl_tab;  //DoubleLink tab
 
 };
-
-
 
 /*<====================*Utility funcs*====================>*/
 
@@ -61,10 +61,10 @@ void * unwrapMalloc(size_t size){
 }
 
 Node* create_node(int val,tabSize nb_level){
-	Node * node = unwrapMalloc(sizeof(Node));
+	Node * node = unwrapMalloc(sizeof(Node)+sizeof(DoubleLink)*nb_level);
 	node->val = val;
 	node->level = nb_level;
-	node->dl_tab = unwrapMalloc(sizeof(DoubleLink)*nb_level);
+	node->dl_tab = node+1;
 
 	return node;
 
@@ -110,7 +110,7 @@ Node* skiplist_node_at(const SkipList * d, unsigned int pos){
 /* >-------Create and delete funcs-------< */
 SkipList* skiplist_create(int nblevels) {
 	//ensure continuity
-	SkipList *list = unwrapMalloc(sizeof(struct s_Skiplist) + sizeof(struct s_Node) + sizeof(struct s_DoubleLink));
+	struct s_Skiplist *list = unwrapMalloc(sizeof(struct s_Skiplist) + sizeof(struct s_Node) + sizeof(struct s_DoubleLink));
 	list->size = 0;
 	list->sentinel = (Node*)list+1;
 	list->sentinel->level = nblevels;
