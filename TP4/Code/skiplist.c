@@ -11,6 +11,12 @@
 
 // #define DEBUG
 
+#ifdef DEBUG
+#define debub_print(args) printf(args)
+#endif
+#ifndef DEBUG
+#define debub_print(args)
+#endif
 
 /*<====================>*Structs*<====================>------*/
 
@@ -34,19 +40,12 @@ typedef struct s_Node{
 }  Node;
 
 /*<====================*Utility funcs*====================>*/
-DoubleLink create_db(Node *next,Node *previous);
-void print_debug(const char* s){
-	#ifdef DEBUG
-	printf("%s",s);
-	#endif
-	(void)s;
-
-}
 
 void * unwrapMalloc(size_t size){
 	void * ptr = malloc(size);
 	if(!ptr){
-		fprintf(stderr,"error : could not initialize a list; alloc failed");
+		fprintf(stderr,"error : could not allocate %lu bytes of memory",size);
+		perror("exiting the program");
 		exit(1);
 	}
 	else return ptr;
@@ -54,38 +53,33 @@ void * unwrapMalloc(size_t size){
 
 Node* create_node(int val,tabSize nb_level){
 
-	print_debug("creating node\n");
+	debub_print("creating node\n");
 
 	Node * node = unwrapMalloc(sizeof(Node));
 	node->dl_tab = malloc(sizeof(DoubleLink)*nb_level);
 	node->val = val;
 	node->level = nb_level;
-	#ifdef DEBUG
-	for(int i =0; i<nb_level;i++){
-		node->dl_tab[i] = create_db(NULL,NULL);
-	}
-	#endif
 
-	print_debug("end creating node\n");
-
+	debub_print("end creating node\n");
 
 	return node;
 }
 
 void delete_node(Node* node){
-	print_debug("deleting node\n");
+	debub_print("deleting node\n");
 
 	assert(node!=NULL);
 	
 	free(node);
 	node =NULL;
+	debub_print("end deleting node\n");
 }
 
 Node * node_next(Node *node){
 	return node->dl_tab[0].next;
 }
 
-Node * node_get_nth_next_node(Node *node,unsigned int n){
+Node * node_nth_next_node(Node *node,unsigned int n){
 	assert(n<node->level);
 	return node->dl_tab[n].next;
 }
@@ -113,7 +107,7 @@ Node* skiplist_node_at(const SkipList * d, unsigned int pos){
 /* >-------Create and delete funcs-------< */
 SkipList* skiplist_create(int nblevels) {
 	
-	print_debug("creating list\n");
+	debub_print("creating list\n");
 
 	//ensure continuity
 	SkipList *list = unwrapMalloc(sizeof(SkipList) );//+ sizeof(struct s_Node) + sizeof(struct s_DoubleLink));
@@ -128,13 +122,13 @@ SkipList* skiplist_create(int nblevels) {
 		list->sentinel->dl_tab[i].next = list->sentinel;
 		list->sentinel->dl_tab[i].previous = list->sentinel;
 	}
-	print_debug("end creating list\n");
+	debub_print("end creating list\n");
 
 	return (SkipList*)list;
 }
 
 void skiplist_delete(SkipList** d) {
-	print_debug("deleting list\n");
+	debub_print("deleting list\n");
 
 	Node * curent = node_next((*d)->sentinel);
 	while (curent != (*d)->sentinel){
@@ -148,8 +142,8 @@ void skiplist_delete(SkipList** d) {
 	*d =NULL;
 }
 
-SkipList* skiplist_insert(SkipList* d, int value) {//TODO
-	print_debug("inserting\n");
+SkipList* skiplist_insert(SkipList* d, int value) {
+	debub_print("inserting\n");
 
 	Node *to_insert_after [d->sentinel->level];
 	Node * new_node = create_node(value,rng_get_value(&d->rng)+1);
@@ -166,16 +160,16 @@ SkipList* skiplist_insert(SkipList* d, int value) {//TODO
 		else if(next->val < value)
 			cur_pos = next;
 		else{
-			print_debug("clé dupliqué\n");
+			debub_print("clé dupliqué\n");
 			return d;
 		}
 
 	}
 
 	for (unsigned int i=0; i<new_node->level;++i){
+		node_nth_next_node(to_insert_after[i],i)->dl_tab[i].previous = new_node;
+		new_node->dl_tab[i].next = node_nth_next_node(to_insert_after[i],i);
 
-		to_insert_after[i]->dl_tab[i].next->dl_tab[i].previous = new_node;
-		new_node->dl_tab[i].next = to_insert_after[i]->dl_tab[i].next;
 
 		to_insert_after[i] ->dl_tab[i].next = new_node;
 		new_node->dl_tab[i].previous = to_insert_after[i];
@@ -183,7 +177,7 @@ SkipList* skiplist_insert(SkipList* d, int value) {//TODO
 
 	}
 	d->size++;
-	print_debug("end inserting\n");
+	debub_print("end inserting\n");
 
 	return d;
 }
@@ -196,6 +190,23 @@ unsigned int skiplist_size(const SkipList *d){
 
 int skiplist_at(const SkipList* d, unsigned int i){
 	return skiplist_node_at(d,i)->val;
+}
+
+bool skiplist(const SkipList* d, int value, unsigned int *nb_operations){
+	if(skiplist_size(d)==0)
+		return false;
+	Node *cur_pos = d->sentinel;
+	unsigned int cur_level = d->sentinel->level-1; //-1 cause to get an index in a tab
+	while (node_nth_next_node(cur_pos,cur_level)->val != value && node_next(cur_pos)->val<=value){
+		*nb_operations++;
+		if (node_nth_next_node(cur_pos,cur_level)->val < value)
+			cur_pos = node_nth_next_node(cur_pos,cur_level);
+		else if(node_nth_next_node(cur_pos,cur_level)->val > value)
+			cur_level--;
+	}
+
+	return (node_nth_next_node(cur_pos,cur_level)->val == value);
+	
 }
 
 /* >----------Util funcs----------< */

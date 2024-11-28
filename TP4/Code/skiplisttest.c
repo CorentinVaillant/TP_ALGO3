@@ -109,7 +109,6 @@ void printlist (int i, void * env){
 /** Exercice 1.
  	Programming and test of skiplist construction.
  */
-#define NB_CHAR 27
 void test_construction(int num){
 	SkipList * list = buildlist(num);
 
@@ -117,13 +116,15 @@ void test_construction(int num){
 	skiplist_map(list,printlist,stdout);
 	
 }
-#undef NB_CHAR
 
 /** Exercice 2.
  Programming and test of skiplist search operator.
  */
 void test_search(int num){
-	(void) num;
+	SkipList *list = buildlist(num);
+	printf("Statistics :\n\tSize of the list : %d",skiplist_size(list));
+
+	//TODO
 }
 
 /** Exercice 3.
