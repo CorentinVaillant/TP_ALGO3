@@ -9,7 +9,7 @@
 
 #define tabSize __uint8_t
 
-// #define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
 #define debub_print(...) printf(__VA_ARGS__)
@@ -113,9 +113,11 @@ SkipList* skiplist_create(int nblevels) {
 	SkipList *list = unwrapMalloc(sizeof(SkipList) );//+ sizeof(struct s_Node) + sizeof(struct s_DoubleLink));
 	list->size = 0;
 	list->sentinel = unwrapMalloc(sizeof(struct s_Node));//(Node*)list+1;
+	list->sentinel->val=0x4B1DE;
 	list->sentinel->level = nblevels;
 	list->sentinel->dl_tab = unwrapMalloc( sizeof(struct s_DoubleLink)*nblevels) ;//(DoubleLink*)(list->sentinel+1);
 	list->rng = rng_initialize(0x4B1DE,nblevels);
+
 
 	for(int i=0;i<nblevels;i++){
 		
@@ -145,7 +147,7 @@ void skiplist_delete(SkipList** d) {
 SkipList* skiplist_insert(SkipList* d, int value) {
 	debub_print("inserting\n");
 
-	Node *to_insert_after [d->sentinel->level];
+	Node * to_insert_after [d->sentinel->level];
 	Node * new_node = create_node(value,rng_get_value(&d->rng)+1);
 	Node * cur_pos = d->sentinel;
 	Node * next ;
@@ -207,32 +209,30 @@ int skiplist_at(const SkipList* d, unsigned int i){
 *	
 */
 bool skiplist_search(const SkipList* d, int value, unsigned int *nb_operations){
-	debub_print("searching value :%d\n",value);
-	if(skiplist_size(d)==0)
-		return false;
-	Node *cur_pos = d->sentinel;
-	unsigned int cur_level = d->sentinel->level-1; //-1 cause to get an index in a tab
-	
-	while (node_nth_next_node(cur_pos,cur_level)->val < value && node_nth_next_node(cur_pos,cur_level) != d->sentinel){
-		cur_pos = node_nth_next_node(cur_pos,cur_level);
-		(*nb_operations)++;
-	}
 
-	while (cur_pos->val > value){
-		(*nb_operations)++;
-		if(node_nth_next_node(cur_pos,cur_level)->val > value){
-			if (cur_level==0) cur_pos = node_next(cur_pos);
-			else cur_level--;
+	debub_print("searching value :%d\n",value);
+
+	Node *cur_pos = d->sentinel;
+	int cur_level = d->sentinel->level-1; //-1 cause to get an index in a tab
+
+//! have to see node next and not cur_pos
+
+	while (node_next(cur_pos)!=d->sentinel && (cur_pos->val != value || cur_pos == d->sentinel) && cur_level>=0  && node_next(cur_pos)->val<=value){
+		if(node_nth_next_node(cur_pos,cur_level)->val > value || node_nth_next_node(cur_pos,cur_level)==d->sentinel){
+			(*nb_operations)++;
+			debub_print("decresing level\n");
+			cur_level--;
+		} 
+		if(node_nth_next_node(cur_pos,cur_level)->val <= value && node_nth_next_node(cur_pos,cur_level)!=d->sentinel){
+			(*nb_operations)++;
+			debub_print("going to the next node\n");
+			cur_pos = node_nth_next_node(cur_pos,cur_level);		
 		}
-		else if(node_nth_next_node(cur_pos,cur_level)->val == value)
-			cur_pos = node_nth_next_node(cur_pos,cur_level);
-		
 	}
-	debub_print("end searching value :%d with %u operations\n",value,*nb_operations);
-	return (cur_pos->val == value);
 	
 	
-	
+	debub_print("end searching value :%d (found: %d) with %u operations\n",value,cur_pos->val == value,*nb_operations);
+	return (cur_pos->val == value );
 }
 
 /* >----------Util funcs----------< */

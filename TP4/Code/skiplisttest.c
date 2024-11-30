@@ -114,6 +114,7 @@ void test_construction(int num){
 
 	printf("Skiplist (%d)\n",skiplist_size(list));
 	skiplist_map(list,printlist,stdout);
+	printf("\n");
 	
 }
 
@@ -122,7 +123,6 @@ void test_construction(int num){
  */
 void test_search(int num){
 	SkipList *list = buildlist(num);
-	printf("Statistics :\n\tSize of the list : %d\n",skiplist_size(list));
 
 	FILE *input;
 	char *searchfromfile = gettestfilename("search", num);
@@ -138,14 +138,17 @@ void test_search(int num){
 		search_tab[i] = read_int(input);
 	}
 
+	bool found;
 	unsigned int nb_op = 0;
 	unsigned int min_nb_op = -1;
 	unsigned int max_nb_op = 0;
 	unsigned int avg_nb_op = 0;
-	unsigned int found = 0;
-	printf("Search %d values :\n",nb_val);
+	unsigned int nb_found = 0;
 	for(unsigned int i = 0; i<nb_val; i++){
-		found += skiplist_search(list,search_tab[i],&nb_op) ? 1:0;
+		found = skiplist_search(list,search_tab[i],&nb_op);
+		printf("%d -> %s\n",search_tab[i],found ? "true" : "false");
+		
+		nb_found += found ? 1:0;
 		min_nb_op = min_nb_op>nb_op||i==0 ? nb_op : min_nb_op;
 		max_nb_op = max_nb_op<nb_op ? nb_op : max_nb_op;
 
@@ -153,11 +156,13 @@ void test_search(int num){
 		nb_op = 0;
 	}
 	avg_nb_op /= nb_val;
-	printf("\tFound %u \n",found);
-	printf("\tNot found %u \n",nb_val-found);
-	printf("\tMin number of operations : %u \n",min_nb_op);
-	printf("\tMax number of operations : %u \n",max_nb_op);
-	printf("\tMean number of operations : %u", avg_nb_op);
+	printf("Statistics : \n\tSize of the list : %d\n",skiplist_size(list));
+	printf("Search %d values :\n",nb_val);
+	printf("\tFound %u\n",nb_found);
+	printf("\tNot found %u\n",nb_val-nb_found);
+	printf("\tMin number of operations : %u\n",min_nb_op);
+	printf("\tMax number of operations : %u\n",max_nb_op);
+	printf("\tMean number of operations : %u\n", avg_nb_op);
 }
 
 /** Exercice 3.
