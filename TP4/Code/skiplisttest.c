@@ -122,9 +122,42 @@ void test_construction(int num){
  */
 void test_search(int num){
 	SkipList *list = buildlist(num);
-	printf("Statistics :\n\tSize of the list : %d",skiplist_size(list));
+	printf("Statistics :\n\tSize of the list : %d\n",skiplist_size(list));
 
-	//TODO
+	FILE *input;
+	char *searchfromfile = gettestfilename("search", num);
+	input = fopen(searchfromfile,"r");
+	if(!input){
+		printf("Unable to open file %s\n", searchfromfile);
+		free(searchfromfile);
+		exit (1);
+	}
+	unsigned int nb_val = read_uint(input);
+	int search_tab[nb_val];
+	for(unsigned int i=0;i<nb_val;i++){
+		search_tab[i] = read_int(input);
+	}
+
+	unsigned int nb_op = 0;
+	unsigned int min_nb_op = -1;
+	unsigned int max_nb_op = 0;
+	unsigned int avg_nb_op = 0;
+	unsigned int found = 0;
+	printf("Search %d values :\n",nb_val);
+	for(unsigned int i = 0; i<nb_val; i++){
+		found += skiplist_search(list,search_tab[i],&nb_op) ? 1:0;
+		min_nb_op = min_nb_op>nb_op||i==0 ? nb_op : min_nb_op;
+		max_nb_op = max_nb_op<nb_op ? nb_op : max_nb_op;
+
+		avg_nb_op += nb_op;
+		nb_op = 0;
+	}
+	avg_nb_op /= nb_val;
+	printf("\tFound %u \n",found);
+	printf("\tNot found %u \n",nb_val-found);
+	printf("\tMin number of operations : %u \n",min_nb_op);
+	printf("\tMax number of operations : %u \n",max_nb_op);
+	printf("\tMean number of operations : %u", avg_nb_op);
 }
 
 /** Exercice 3.

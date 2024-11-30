@@ -12,10 +12,10 @@
 // #define DEBUG
 
 #ifdef DEBUG
-#define debub_print(args) printf(args)
+#define debub_print(...) printf(__VA_ARGS__)
 #endif
 #ifndef DEBUG
-#define debub_print(args)
+#define debub_print(...)
 #endif
 
 /*<====================>*Structs*<====================>------*/
@@ -192,20 +192,46 @@ int skiplist_at(const SkipList* d, unsigned int i){
 	return skiplist_node_at(d,i)->val;
 }
 
-bool skiplist(const SkipList* d, int value, unsigned int *nb_operations){
+/*
+* 	La recherche d’un nœud, par sa clé, dans une liste à raccourcis débute par l’en-tête (ou la
+* 	sentinelle), au niveau le plus haut de la liste et en suivant les pointeurs de ce niveau tant que
+* 	les clés des nœuds accessibles sont inférieures à la clé recherchée. 
+*		Si la clé d’un nœud accessible par un pointeur de niveau l est égale à la clé recherchée, l’algorithme s’arrête. 
+*		Si la clé de ce noeud est supérieure à la clé recherchée, la progression continue sur le niveau l − 1, 
+*  		 à partir du nœud courant, jusqu’à ce que l’on ait trouvé la clé recherchée ou que la clé d’un nœud atteint
+* 		 par un pointeur de niveau 1 soit strictement supérieure à la clé recherchée, indiquant que cette
+* 		 clé recherchée est absente de la collection.
+
+*	On commence par la sentinel au niveau le plus haut (d->sentinel->level-1)
+*	On suit le pointeur à ce niveau tant que la clée associé au pointeur est inférieur à la valeur rechercher
+*	
+*/
+bool skiplist_search(const SkipList* d, int value, unsigned int *nb_operations){
+	debub_print("searching value :%d\n",value);
 	if(skiplist_size(d)==0)
 		return false;
 	Node *cur_pos = d->sentinel;
 	unsigned int cur_level = d->sentinel->level-1; //-1 cause to get an index in a tab
-	while (node_nth_next_node(cur_pos,cur_level)->val != value && node_next(cur_pos)->val<=value){
-		*nb_operations++;
-		if (node_nth_next_node(cur_pos,cur_level)->val < value)
-			cur_pos = node_nth_next_node(cur_pos,cur_level);
-		else if(node_nth_next_node(cur_pos,cur_level)->val > value)
-			cur_level--;
+	
+	while (node_nth_next_node(cur_pos,cur_level)->val < value && node_nth_next_node(cur_pos,cur_level) != d->sentinel){
+		cur_pos = node_nth_next_node(cur_pos,cur_level);
+		(*nb_operations)++;
 	}
 
-	return (node_nth_next_node(cur_pos,cur_level)->val == value);
+	while (cur_pos->val > value){
+		(*nb_operations)++;
+		if(node_nth_next_node(cur_pos,cur_level)->val > value){
+			if (cur_level==0) cur_pos = node_next(cur_pos);
+			else cur_level--;
+		}
+		else if(node_nth_next_node(cur_pos,cur_level)->val == value)
+			cur_pos = node_nth_next_node(cur_pos,cur_level);
+		
+	}
+	debub_print("end searching value :%d with %u operations\n",value,*nb_operations);
+	return (cur_pos->val == value);
+	
+	
 	
 }
 
