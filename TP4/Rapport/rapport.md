@@ -1,0 +1,1 @@
+la différence de temps est dut à la complexiter, la recherche naïve est en O(n), alors que la recherche implémeter avant est mieux en compléxiter, car l'on profite de la structure.
