@@ -259,3 +259,7 @@ void skiplist_iterator_delete(SkipListIterator** it){
 	*it = NULL;
 }
 
+SkipListIterator* skiplist_iterator_begin(SkipListIterator* it){
+	it->pos = it->list->sentinel;
+	return it;
+}
