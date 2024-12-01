@@ -39,6 +39,14 @@ typedef struct s_Node{
 
 }  Node;
 
+
+struct s_SkipListIterator{
+	enum slit_direction direction;
+	struct s_SkipList * list;
+	struct s_Node * pos;
+};
+
+
 /*<====================*Utility funcs*====================>*/
 
 void * unwrapMalloc(size_t size){
@@ -194,20 +202,6 @@ int skiplist_at(const SkipList* d, unsigned int i){
 	return skiplist_node_at(d,i)->val;
 }
 
-/*
-* 	La recherche d’un nœud, par sa clé, dans une liste à raccourcis débute par l’en-tête (ou la
-* 	sentinelle), au niveau le plus haut de la liste et en suivant les pointeurs de ce niveau tant que
-* 	les clés des nœuds accessibles sont inférieures à la clé recherchée. 
-*		Si la clé d’un nœud accessible par un pointeur de niveau l est égale à la clé recherchée, l’algorithme s’arrête. 
-*		Si la clé de ce noeud est supérieure à la clé recherchée, la progression continue sur le niveau l − 1, 
-*  		 à partir du nœud courant, jusqu’à ce que l’on ait trouvé la clé recherchée ou que la clé d’un nœud atteint
-* 		 par un pointeur de niveau 1 soit strictement supérieure à la clé recherchée, indiquant que cette
-* 		 clé recherchée est absente de la collection.
-
-*	On commence par la sentinel au niveau le plus haut (d->sentinel->level-1)
-*	On suit le pointeur à ce niveau tant que la clée associé au pointeur est inférieur à la valeur rechercher
-*	
-*/
 bool skiplist_search(const SkipList* d, int value, unsigned int *nb_operations) {
     debug_print("Searching value: %d\n", value);
     Node *cur_pos = d->sentinel;  // Début au nœud sentinelle
@@ -248,4 +242,14 @@ void skiplist_map(const SkipList* d, ScanOperator f, void *user_data){
 		f(cur_pos->val,user_data);
 		cur_pos = node_next(cur_pos);
 	}
+}
+
+
+/* >----------iterators----------< */
+SkipListIterator* skiplist_iterator_create(SkipList* d, IteratorDirection w){
+	SkipListIterator * result = unwrapMalloc(sizeof(SkipListIterator));
+	result->direction = w;
+	result->list = d;
+	result->pos = node_next(d->sentinel);
+	return result;
 }
