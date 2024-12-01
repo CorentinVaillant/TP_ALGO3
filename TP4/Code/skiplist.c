@@ -260,6 +260,10 @@ void skiplist_iterator_delete(SkipListIterator** it){
 }
 
 SkipListIterator* skiplist_iterator_begin(SkipListIterator* it){
-	it->pos = it->list->sentinel;
+	it->pos = node_next(it->list->sentinel);
 	return it;
+}
+
+bool skiplist_iterator_end(SkipListIterator* it){
+	return (it->pos == it->list->sentinel);
 }
