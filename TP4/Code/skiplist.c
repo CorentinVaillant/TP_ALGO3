@@ -260,10 +260,20 @@ void skiplist_iterator_delete(SkipListIterator** it){
 }
 
 SkipListIterator* skiplist_iterator_begin(SkipListIterator* it){
-	it->pos = node_next(it->list->sentinel);
+	it->pos = it->direction == FORWARD_ITERATOR 
+		? it->list->sentinel->dl_tab[0].next 
+		: it->list->sentinel->dl_tab[0].previous;
+
 	return it;
 }
 
 bool skiplist_iterator_end(SkipListIterator* it){
 	return (it->pos == it->list->sentinel);
+}
+
+SkipListIterator* skiplist_iterator_next(SkipListIterator* it){
+	it->pos = it->direction == FORWARD_ITERATOR 
+		? it->pos->dl_tab[0].next
+		: it->pos->dl_tab[0].next;
+	return it;
 }
