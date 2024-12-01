@@ -253,3 +253,9 @@ SkipListIterator* skiplist_iterator_create(SkipList* d, IteratorDirection w){
 	result->pos = node_next(d->sentinel);
 	return result;
 }
+
+void skiplist_iterator_delete(SkipListIterator** it){
+	free(*it);
+	*it = NULL;
+}
+
