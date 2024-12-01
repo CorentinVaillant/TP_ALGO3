@@ -277,3 +277,7 @@ SkipListIterator* skiplist_iterator_next(SkipListIterator* it){
 		: it->pos->dl_tab[0].next;
 	return it;
 }
+
+int skiplist_iterator_value(SkipListIterator* it){
+	return it->pos->val;
+}
