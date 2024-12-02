@@ -192,7 +192,7 @@ SkipList* skiplist_insert(SkipList* d, int value) {
 }
 
 
-SkipList* skiplist_remove(SkipList* d, int value){
+SkipList* skiplist_remove(SkipList* d, int value){//! Boucle
 debug_print("removing %d\n", value);
 
 	Node * to_remove_after [d->sentinel->level];
