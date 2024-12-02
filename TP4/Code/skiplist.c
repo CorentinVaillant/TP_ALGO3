@@ -145,7 +145,7 @@ void skiplist_delete(SkipList** d) {
 		Node * to_delete = curent;
 		curent = node_next(curent);
 		
-		delete_node(to_delete);
+		delete_node(&to_delete);
 	}
 
 	free(*d);
@@ -201,6 +201,7 @@ debug_print("removing %d\n", value);
 
 	int level_pos = d->sentinel->level - 1;
 	while (level_pos>=0){
+
 		next = cur_pos->dl_tab[level_pos].next;
 		if (!(next == d->sentinel || next->val>value)){
 			to_remove_after[level_pos]=cur_pos;

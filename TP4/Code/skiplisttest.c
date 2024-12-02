@@ -115,6 +115,7 @@ void test_construction(int num){
 	printf("Skiplist (%d)\n",skiplist_size(list));
 	skiplist_map(list,printlist,stdout);
 	printf("\n");
+	skiplist_delete(&list);
 	
 }
 
@@ -169,7 +170,7 @@ void test_search(int num){
  Programming and test of naïve search operator using iterators.
  */
 void test_search_iterator(int num){
-		SkipList *list = buildlist(num);
+	SkipList *list = buildlist(num);
 
 	FILE *input;
 	char *searchfromfile = gettestfilename("search", num);
@@ -226,7 +227,35 @@ void test_search_iterator(int num){
  Programming and test of skiplist remove operator.
  */
 void test_remove(int num){
-	(void) num;
+	SkipList *list = buildlist(num);
+
+	FILE *input;
+	char *removefromfile = gettestfilename("remove", num);
+	input = fopen(removefromfile,"r");
+	if(!input){
+		printf("Unable to open file %s\n", removefromfile);
+		free(removefromfile);
+		exit (1);
+	}
+	printf("Skiplist (%d)\n",skiplist_size(list));
+
+	unsigned int nb_val = read_uint(input);
+	for(unsigned int i=0;i<nb_val;i++){
+		int to_remove = read_int(input);
+		skiplist_remove(list,to_remove);
+	}
+
+	SkipListIterator *e = skiplist_iterator_create(list,BACKWARD_ITERATOR);
+	for(e = skiplist_iterator_begin(e);
+		!skiplist_iterator_end(e);e = skiplist_iterator_next(e)){
+			printf("%d ",skiplist_iterator_value(e));
+		}
+	printf("\n");
+
+	skiplist_iterator_delete(&e);
+	skiplist_delete(&list);
+
+	
 }
 
 /** Function you ca use to generate dataset for testing.
