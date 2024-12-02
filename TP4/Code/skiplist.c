@@ -73,13 +73,13 @@ Node* create_node(int val,tabSize nb_level){
 	return node;
 }
 
-void delete_node(Node* node){
+void delete_node(Node** node){
 	debug_print("deleting node\n");
 
 	assert(node!=NULL);
-	
-	free(node);
-	node =NULL;
+		
+	free(*node);
+	*node =NULL;
 	debug_print("end deleting node\n");
 }
 
@@ -184,7 +184,6 @@ SkipList* skiplist_insert(SkipList* d, int value) {
 		to_insert_after[i] ->dl_tab[i].next = new_node;
 		new_node->dl_tab[i].previous = to_insert_after[i];
 		
-
 	}
 	d->size++;
 	debug_print("end inserting\n");
@@ -192,6 +191,41 @@ SkipList* skiplist_insert(SkipList* d, int value) {
 	return d;
 }
 
+
+SkipList* skiplist_remove(SkipList* d, int value){
+debug_print("removing %d\n", value);
+
+	Node * to_remove_after [d->sentinel->level];
+	Node * cur_pos = d->sentinel;
+	Node * next ;
+
+	int level_pos = d->sentinel->level - 1;
+	while (level_pos>=0){
+		next = cur_pos->dl_tab[level_pos].next;
+		if (!(next == d->sentinel || next->val>value)){
+			to_remove_after[level_pos]=cur_pos;
+			level_pos--;
+		}
+		else if(!(next->val < value))
+			cur_pos = next;
+		else{
+			debug_print("clé inéxistante\n");
+			return d;
+		}
+
+	}
+
+	for (unsigned int i=0; i<cur_pos->level;++i){
+		node_nth_next_node(to_remove_after[i],i)->dl_tab[i].previous = cur_pos->dl_tab[i].previous;
+
+		to_remove_after[i] ->dl_tab[i].next = cur_pos->dl_tab[i].next;
+	}
+	d->size--;
+	delete_node(&cur_pos);
+	debug_print("end removing\n");
+
+	return d;
+}
 /* >----------Infos funcs----------< */
 
 unsigned int skiplist_size(const SkipList *d){
