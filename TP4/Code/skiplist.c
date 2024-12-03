@@ -9,7 +9,7 @@
 
 #define tabSize __uint8_t
 
-//#define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #define debug_print(...) printf(__VA_ARGS__)
@@ -61,7 +61,8 @@ void * unwrapMalloc(size_t size){
 
 Node* create_node(int val,tabSize nb_level){
 
-	debug_print("creating node\n");
+	debug_print("creating node with level :%d\n",nb_level);
+	assert(nb_level>0);
 
 	Node * node = unwrapMalloc(sizeof(Node));
 	node->dl_tab = malloc(sizeof(DoubleLink)*nb_level);
@@ -77,6 +78,7 @@ void delete_node(Node** node){
 	debug_print("deleting node\n");
 
 	assert(node!=NULL);
+	(*node)->val = 0xFF;
 		
 	free(*node);
 	*node =NULL;
@@ -88,8 +90,13 @@ Node * node_next(Node *node){
 }
 
 Node * node_nth_next_node(Node *node,unsigned int n){
-	assert(n<node->level);
+	assert(n<(node->level));
 	return node->dl_tab[n].next;
+}
+
+Node * node_nth_previous_node(Node *node,unsigned int n){
+	assert(n<(node->level));
+	return node->dl_tab[n].previous;
 }
 
 DoubleLink create_db(Node *next,Node *previous){
@@ -162,7 +169,7 @@ SkipList* skiplist_insert(SkipList* d, int value) {
 
 	int level_pos = d->sentinel->level - 1;
 	while (level_pos>=0){
-		next = cur_pos->dl_tab[level_pos].next;
+		next = node_nth_next_node(cur_pos,level_pos);
 		if (next == d->sentinel || next->val>value){
 			to_insert_after[level_pos]=cur_pos;
 			level_pos--;
@@ -192,41 +199,51 @@ SkipList* skiplist_insert(SkipList* d, int value) {
 }
 
 
-SkipList* skiplist_remove(SkipList* d, int value){//! Boucle
-debug_print("removing %d\n", value);
+SkipList* skiplist_remove(SkipList* d, int value) {
+    debug_print("removing %d\n", value);
 
-	Node * to_remove_after [d->sentinel->level];
-	Node * cur_pos = d->sentinel;
-	Node * next ;
+    Node* cur_pos = d->sentinel;
 
-	int level_pos = d->sentinel->level - 1;
-	while (level_pos>=0){
+    Node* next;
+    int level_pos = cur_pos->level - 1;
 
-		next = cur_pos->dl_tab[level_pos].next;
-		if (!(next == d->sentinel || next->val>value)){
-			to_remove_after[level_pos]=cur_pos;
-			level_pos--;
-		}
-		else if(!(next->val < value))
-			cur_pos = next;
-		else{
-			debug_print("clé inéxistante\n");
-			return d;
-		}
 
-	}
+//finding the node to remove
+    while (level_pos >= 0 && (cur_pos->val != value)) {
+        next = node_nth_next_node(cur_pos, level_pos);
+		debug_print("treting node ! %d\n",next->val);
 
-	for (unsigned int i=0; i<cur_pos->level;++i){
-		node_nth_next_node(to_remove_after[i],i)->dl_tab[i].previous = cur_pos->dl_tab[i].previous;
+        if (next == d->sentinel || next->val > value) {
+            level_pos--;
 
-		to_remove_after[i] ->dl_tab[i].next = cur_pos->dl_tab[i].next;
-	}
-	d->size--;
-	delete_node(&cur_pos);
-	debug_print("end removing\n");
+        } else /*if (next != d->sentinel && next->val <= value) */{
+            cur_pos = next;
+			debug_print("ah\n");
+			for(unsigned int i=-0xFFFF;i<0xFFFF; i++);//!toremove
+        }
+    }
+//removing the node
+    if (!(cur_pos!=d->sentinel && cur_pos->val == value)) {
+        debug_print("clé non présente\n");
+        return d; 
+    }
 
-	return d;
+    for (int i = 0; i < cur_pos->level; ++i) {
+
+        node_nth_previous_node(cur_pos, i)->dl_tab->next = node_nth_previous_node(cur_pos, i);
+        node_nth_next_node(cur_pos, i)->dl_tab->previous = node_nth_next_node(cur_pos, i);
+
+		debug_print("%d<--->%d\n",node_nth_previous_node(cur_pos, i)->dl_tab->next->val,node_nth_next_node(cur_pos, i)->dl_tab->previous->val);
+    }
+
+    // Libérer la mémoire du noeud
+    delete_node(&cur_pos);
+    d->size--;
+
+    debug_print("end removing\n");
+    return d;
 }
+
 /* >----------Infos funcs----------< */
 
 unsigned int skiplist_size(const SkipList *d){
