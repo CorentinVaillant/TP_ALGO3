@@ -64,8 +64,8 @@ Node* create_node(int val,tabSize nb_level){
 	debug_print("creating node with level :%d\n",nb_level);
 	assert(nb_level>0);
 
-	Node * node = unwrapMalloc(sizeof(Node));
-	node->dl_tab = malloc(sizeof(DoubleLink)*nb_level);
+	Node * node = unwrapMalloc(sizeof(Node)+sizeof(DoubleLink)*nb_level);
+	node->dl_tab = (DoubleLink*)(node+1);
 	node->val = val;
 	node->level = nb_level;
 
@@ -79,7 +79,7 @@ void delete_node(Node** node){
 
 	assert(node!=NULL);
 	(*node)->val = 0xFF;
-		
+	
 	free(*node);
 	*node =NULL;
 	debug_print("end deleting node\n");
@@ -125,17 +125,16 @@ SkipList* skiplist_create(int nblevels) {
 	debug_print("creating list\n");
 
 	//ensure continuity
-	SkipList *list = unwrapMalloc(sizeof(SkipList) );//+ sizeof(struct s_Node) + sizeof(struct s_DoubleLink));
+	SkipList *list = unwrapMalloc(sizeof(SkipList) + sizeof(Node) + sizeof(DoubleLink)*nblevels);
 	list->size = 0;
-	list->sentinel = unwrapMalloc(sizeof(struct s_Node));//(Node*)list+1;
+	list->sentinel = (Node*)(list+1);
 	list->sentinel->val=0x4B1DE;
 	list->sentinel->level = nblevels;
-	list->sentinel->dl_tab = unwrapMalloc( sizeof(struct s_DoubleLink)*nblevels) ;//(DoubleLink*)(list->sentinel+1);
+	list->sentinel->dl_tab = (DoubleLink*)((Node*)(list+1)+1);//(list->sentinel+1);
 	list->rng = rng_initialize(0x4B1DE,nblevels);
 
-
 	for(int i=0;i<nblevels;i++){
-		
+		debug_print("i :%d\n",i);
 		list->sentinel->dl_tab[i].next = list->sentinel;
 		list->sentinel->dl_tab[i].previous = list->sentinel;
 	}
@@ -163,7 +162,6 @@ SkipList* skiplist_insert(SkipList* d, int value) {
 	debug_print("inserting\n");
 
 	Node * to_insert_after [d->sentinel->level];
-	Node * new_node = create_node(value,rng_get_value(&d->rng)+1);
 	Node * cur_pos = d->sentinel;
 	Node * next ;
 
@@ -182,6 +180,7 @@ SkipList* skiplist_insert(SkipList* d, int value) {
 		}
 
 	}
+	Node * new_node = create_node(value,rng_get_value(&d->rng)+1);
 
 	for (unsigned int i=0; i<new_node->level;++i){
 		node_nth_next_node(to_insert_after[i],i)->dl_tab[i].previous = new_node;

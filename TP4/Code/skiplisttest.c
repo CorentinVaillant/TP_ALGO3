@@ -138,6 +138,8 @@ void test_search(int num){
 	for(unsigned int i=0;i<nb_val;i++){
 		search_tab[i] = read_int(input);
 	}
+	fclose(input);
+	free(searchfromfile);
 
 	bool found;
 	unsigned int nb_op = 0;
@@ -164,6 +166,8 @@ void test_search(int num){
 	printf("\tMin number of operations : %u\n",min_nb_op);
 	printf("\tMax number of operations : %u\n",max_nb_op);
 	printf("\tMean number of operations : %u\n", avg_nb_op);
+
+	skiplist_delete(&list);
 }
 
 /** Exercice 3.
@@ -185,6 +189,8 @@ void test_search_iterator(int num){
 	for(unsigned int i=0;i<nb_val;i++){
 		search_tab[i] = read_int(input);
 	}
+	fclose(input);
+	free(searchfromfile);
 
 	bool found;
 	unsigned int nb_op = 0;
@@ -220,6 +226,8 @@ void test_search_iterator(int num){
 	printf("\tMin number of operations : %u\n",min_nb_op);
 	printf("\tMax number of operations : %u\n",max_nb_op);
 	printf("\tMean number of operations : %u\n", avg_nb_op);
+
+	skiplist_delete(&list);
 	
 }
 
@@ -243,6 +251,9 @@ void test_remove(int num){
 		int to_remove = read_int(input);
 		skiplist_remove(list,to_remove);
 	}
+
+	free(removefromfile);
+	fclose(input);
 	printf("Skiplist (%d)\n",skiplist_size(list));
 
 	SkipListIterator *e = skiplist_iterator_create(list,BACKWARD_ITERATOR);
