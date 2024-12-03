@@ -23,6 +23,56 @@ typedef struct {
     AccessFunction first_op;
     AccessFunction second_op;
 }ChildAccessors;
+/*------------------------  Util funcs  -----------------------------*/
+
+BinarySearchTree* find_next(const BinarySearchTree* x, ChildAccessors access){
+    assert(!bstree_empty(x));
+    BinarySearchTree *curr ;
+    if(!bstree_empty(access.watching_right ? x->right: x->left))
+        curr = access.first_op(x);
+    else {
+        curr = access.second_op(x);
+    }
+    return curr;
+}
+
+BinarySearchTree* bstree_right_then_diving_left(const BinarySearchTree* x){
+    BinarySearchTree *curr ;
+    curr = x->right;
+    while (!bstree_empty(curr->left))
+        curr = curr->left;
+    return curr;
+}
+
+BinarySearchTree* bstree_left_then_diving_right(const BinarySearchTree* x){
+    BinarySearchTree *curr ;
+    curr = x->left;
+    while (!bstree_empty(curr->right))
+        curr = curr->right;
+    return curr;
+}
+
+BinarySearchTree* bstree_up_while_is_right_child(const BinarySearchTree* x){
+    BinarySearchTree *curr ;
+    curr = x->parent;
+    while (!bstree_empty(curr) && x == curr->right){
+        x = curr;
+        curr = curr->parent;
+    }
+    return curr;
+}
+
+BinarySearchTree* bstree_up_while_is_left_child(const BinarySearchTree* x){
+    BinarySearchTree *curr ;
+    curr = x->parent;
+    while (!bstree_empty(curr) && x == curr->left){
+        x = curr;
+        curr = curr->parent;
+    }
+    return curr;
+}
+
+
 
 /*------------------------  BaseBSTree  -----------------------------*/
 
@@ -108,53 +158,6 @@ const BinarySearchTree* bstree_search(const BinarySearchTree* t, int v) {
     
     return curr;
     
-}
-
-BinarySearchTree* find_next(const BinarySearchTree* x, ChildAccessors access){
-    assert(!bstree_empty(x));
-    BinarySearchTree *curr ;
-    if(!bstree_empty(access.watching_right ? x->right: x->left))
-        curr = access.first_op(x);
-    else {
-        curr = access.second_op(x);
-    }
-    return curr;
-}
-
-BinarySearchTree* bstree_right_then_diving_left(const BinarySearchTree* x){
-    BinarySearchTree *curr ;
-    curr = x->right;
-    while (!bstree_empty(curr->left))
-        curr = curr->left;
-    return curr;
-}
-
-BinarySearchTree* bstree_left_then_diving_right(const BinarySearchTree* x){
-    BinarySearchTree *curr ;
-    curr = x->left;
-    while (!bstree_empty(curr->right))
-        curr = curr->right;
-    return curr;
-}
-
-BinarySearchTree* bstree_up_while_is_right_child(const BinarySearchTree* x){
-    BinarySearchTree *curr ;
-    curr = x->parent;
-    while (!bstree_empty(curr) && x == curr->right){
-        x = curr;
-        curr = curr->parent;
-    }
-    return curr;
-}
-
-BinarySearchTree* bstree_up_while_is_left_child(const BinarySearchTree* x){
-    BinarySearchTree *curr ;
-    curr = x->parent;
-    while (!bstree_empty(curr) && x == curr->left){
-        x = curr;
-        curr = curr->parent;
-    }
-    return curr;
 }
 
 const BinarySearchTree* bstree_successor(const BinarySearchTree* x) {
