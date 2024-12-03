@@ -9,7 +9,7 @@
 
 #define tabSize __uint8_t
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 #define debug_print(...) printf(__VA_ARGS__)
@@ -200,48 +200,41 @@ SkipList* skiplist_insert(SkipList* d, int value) {
 
 
 SkipList* skiplist_remove(SkipList* d, int value) {
-    debug_print("removing %d\n", value);
-
-    Node* cur_pos = d->sentinel;
-
-    Node* next;
-    int level_pos = cur_pos->level - 1;
+    debug_print("removing value: %d\n", value);
+    Node *cur_pos = d->sentinel;  // Début au nœud sentinelle
+    int cur_level = d->sentinel->level - 1; // Niveau le plus élevé
+    Node *next_node;
 
 
-//finding the node to remove
-    while (level_pos >= 0 && (cur_pos->val != value)) {
-        next = node_nth_next_node(cur_pos, level_pos);
-		debug_print("treting node ! %d\n",next->val);
+    while (cur_level >= 0 && !(cur_pos!=d->sentinel && cur_pos->val == value)) {
+        next_node = node_nth_next_node(cur_pos, cur_level);
 
-        if (next == d->sentinel || next->val > value) {
-            level_pos--;
-
-        } else /*if (next != d->sentinel && next->val <= value) */{
-            cur_pos = next;
-			debug_print("ah\n");
-			for(unsigned int i=-0xFFFF;i<0xFFFF; i++);//!toremove
+        while (next_node!=d->sentinel && next_node->val < value) {
+            cur_pos = next_node;
+            next_node = node_nth_next_node(cur_pos, cur_level);
         }
-    }
-//removing the node
-    if (!(cur_pos!=d->sentinel && cur_pos->val == value)) {
-        debug_print("clé non présente\n");
-        return d; 
-    }
 
-    for (int i = 0; i < cur_pos->level; ++i) {
+        if (next_node!=d->sentinel && next_node->val == value) {
+            cur_pos = next_node;
+        }
 
-        node_nth_previous_node(cur_pos, i)->dl_tab->next = node_nth_previous_node(cur_pos, i);
-        node_nth_next_node(cur_pos, i)->dl_tab->previous = node_nth_next_node(cur_pos, i);
+        cur_level--;
+	}
 
-		debug_print("%d<--->%d\n",node_nth_previous_node(cur_pos, i)->dl_tab->next->val,node_nth_next_node(cur_pos, i)->dl_tab->previous->val);
-    }
+	if (!(cur_pos!=d->sentinel && cur_pos->val == value)){
+		debug_print("value not found\n");
+		return d;
+	}
+	
+	for(unsigned int i=0; i<cur_pos->level;i++){
+		node_nth_next_node(cur_pos,cur_level)->dl_tab[i].previous = node_nth_previous_node(cur_pos,i);
+		node_nth_previous_node(cur_pos,cur_level)->dl_tab[i].next = node_nth_next_node(cur_pos,i);
 
-    // Libérer la mémoire du noeud
-    delete_node(&cur_pos);
-    d->size--;
+	}
 
-    debug_print("end removing\n");
-    return d;
+	d->size--;
+	delete_node(&cur_pos);
+	return d;
 }
 
 /* >----------Infos funcs----------< */
@@ -262,7 +255,6 @@ bool skiplist_search(const SkipList* d, int value, unsigned int *nb_operations) 
 	(*nb_operations)++;
 
 
-    // Recherche dans chaque niveau
     while (cur_level >= 0) {
         next_node = node_nth_next_node(cur_pos, cur_level);
 
@@ -272,13 +264,11 @@ bool skiplist_search(const SkipList* d, int value, unsigned int *nb_operations) 
             next_node = node_nth_next_node(cur_pos, cur_level);
         }
 
-        // Vérification si la valeur est trouvée
         if (next_node!=d->sentinel && next_node->val == value) {
             debug_print("End searching value: %d (found: true) with %u operations\n", value, *nb_operations);
             return true;
         }
 
-        // Descente au niveau inférieur
         cur_level--;
 	}
 	debug_print("End searching value: %d (found: false) with %u operations\n", value, *nb_operations);
