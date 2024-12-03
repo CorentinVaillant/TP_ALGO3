@@ -237,13 +237,13 @@ void test_remove(int num){
 		free(removefromfile);
 		exit (1);
 	}
-	printf("Skiplist (%d)\n",skiplist_size(list));
 
 	unsigned int nb_val = read_uint(input);
 	for(unsigned int i=0;i<nb_val;i++){
 		int to_remove = read_int(input);
 		skiplist_remove(list,to_remove);
 	}
+	printf("Skiplist (%d)\n",skiplist_size(list));
 
 	SkipListIterator *e = skiplist_iterator_create(list,BACKWARD_ITERATOR);
 	for(e = skiplist_iterator_begin(e);

@@ -198,13 +198,11 @@ SkipList* skiplist_insert(SkipList* d, int value) {
 	return d;
 }
 
-
 SkipList* skiplist_remove(SkipList* d, int value) {
     debug_print("removing value: %d\n", value);
     Node *cur_pos = d->sentinel;  // Début au nœud sentinelle
     int cur_level = d->sentinel->level - 1; // Niveau le plus élevé
     Node *next_node;
-
 
     while (cur_level >= 0 && !(cur_pos!=d->sentinel && cur_pos->val == value)) {
         next_node = node_nth_next_node(cur_pos, cur_level);
@@ -227,8 +225,8 @@ SkipList* skiplist_remove(SkipList* d, int value) {
 	}
 	
 	for(unsigned int i=0; i<cur_pos->level;i++){
-		node_nth_next_node(cur_pos,cur_level)->dl_tab[i].previous = node_nth_previous_node(cur_pos,i);
-		node_nth_previous_node(cur_pos,cur_level)->dl_tab[i].next = node_nth_next_node(cur_pos,i);
+		node_nth_next_node(cur_pos,i)->dl_tab[i].previous = node_nth_previous_node(cur_pos,i);
+		node_nth_previous_node(cur_pos,i)->dl_tab[i].next = node_nth_next_node(cur_pos,i);
 
 	}
 
@@ -236,6 +234,7 @@ SkipList* skiplist_remove(SkipList* d, int value) {
 	delete_node(&cur_pos);
 	return d;
 }
+
 
 /* >----------Infos funcs----------< */
 
@@ -316,7 +315,7 @@ bool skiplist_iterator_end(SkipListIterator* it){
 SkipListIterator* skiplist_iterator_next(SkipListIterator* it){
 	it->pos = it->direction == FORWARD_ITERATOR 
 		? it->pos->dl_tab[0].next
-		: it->pos->dl_tab[0].next;
+		: it->pos->dl_tab[0].previous;
 	return it;
 }
 
