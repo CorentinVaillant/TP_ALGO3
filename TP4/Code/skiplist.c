@@ -247,28 +247,34 @@ int skiplist_at(const SkipList* d, unsigned int i){
 
 bool skiplist_search(const SkipList* d, int value, unsigned int *nb_operations) {
     debug_print("Searching value: %d\n", value);
-    Node *cur_pos = d->sentinel;  // Début au nœud sentinelle
-    int cur_level = d->sentinel->level - 1; // Niveau le plus élevé
-    Node *next_node;
-	(*nb_operations)++;
+    		
+	Node * cur_pos = d->sentinel;
+	Node * next ;
 
+	int level_pos = d->sentinel->level - 1;
 
-    while (cur_level >= 0) {
-        next_node = node_nth_next_node(cur_pos, cur_level);
+	while (level_pos>=0){
 
-        while (next_node!=d->sentinel && next_node->val < value) {
-            cur_pos = next_node;
-            (*nb_operations)++;
-            next_node = node_nth_next_node(cur_pos, cur_level);
-        }
+		next = node_nth_next_node(cur_pos,level_pos);
 
-        if (next_node!=d->sentinel && next_node->val == value) {
-            debug_print("End searching value: %d (found: true) with %u operations\n", value, *nb_operations);
-            return true;
-        }
+		if (next == d->sentinel || next->val>value){
+			level_pos--;
+		}
+		else if(next->val < value){
+			cur_pos = next;
+			(*nb_operations)++;
 
-        cur_level--;
+		}
+
+		else{
+			(*nb_operations)++;
+			debug_print("clé End searching value: %d (found: true) with %u operations\n", value, *nb_operations);
+			return true;
+		}
+
 	}
+	// (*nb_operations)++;
+
 	debug_print("End searching value: %d (found: false) with %u operations\n", value, *nb_operations);
     return false;
 }
