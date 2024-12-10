@@ -12,7 +12,7 @@
 /* Define this for solving the exercice 4. */
 #define EXERCICE_4
 /* Define this for solving the exercice 5. */
-//#define EXERCICE_5
+#define EXERCICE_5
 /* Define this for solving the exercice 6. */
 //#define EXERCICE_6
 /* Define this for solving the exercice 7. */
