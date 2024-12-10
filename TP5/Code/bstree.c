@@ -37,8 +37,12 @@ BinarySearchTree* find_next(const BinarySearchTree* x, ChildAccessors access){
     return curr;
 }
 
+bool bstree_is_leaf(const BinarySearchTree* x){
+    return !(x->left) && !(x->right);
+}
+
 BinarySearchTree* bstree_right_then_diving_left(const BinarySearchTree* x){
-    BinarySearchTree *curr ;
+    BinarySearchTree *curr;
     curr = x->right;
     while (!bstree_empty(curr->left))
         curr = curr->left;
@@ -46,7 +50,7 @@ BinarySearchTree* bstree_right_then_diving_left(const BinarySearchTree* x){
 }
 
 BinarySearchTree* bstree_left_then_diving_right(const BinarySearchTree* x){
-    BinarySearchTree *curr ;
+    BinarySearchTree *curr;
     curr = x->left;
     while (!bstree_empty(curr->right))
         curr = curr->right;
@@ -54,7 +58,7 @@ BinarySearchTree* bstree_left_then_diving_right(const BinarySearchTree* x){
 }
 
 BinarySearchTree* bstree_up_while_is_right_child(const BinarySearchTree* x){
-    BinarySearchTree *curr ;
+    BinarySearchTree *curr;
     curr = x->parent;
     while (!bstree_empty(curr) && x == curr->right){
         x = curr;
@@ -179,6 +183,34 @@ const BinarySearchTree* bstree_predecessor(const BinarySearchTree* x) {
 
 void bstree_swap_nodes(ptrBinarySearchTree* tree, ptrBinarySearchTree from, ptrBinarySearchTree to) {
     assert(!bstree_empty(*tree) && !bstree_empty(from) && !bstree_empty(to));
+    
+    //case when from and to are leaf
+    if(from->parent){
+        if  (from->parent->left == from) from->parent->left = to;
+        else from->parent->right = to;
+    }
+    if(from->left )from->left->parent = to;
+    if(from->right)from->right->parent = to;
+
+    ptrBinarySearchTree parent  = from->parent;
+    ptrBinarySearchTree left    = from->left;
+    ptrBinarySearchTree right   = from->right;
+
+    from->parent = to->parent;
+    from->left = to->left;
+    from->right = to->right;
+
+    if(to->parent){
+        if  (to->parent->left == to) to->parent->left = from;
+        else to->parent->right = from;
+    }
+    if(to->left )to->left->parent = from;
+    if(to->right)to->right->parent= from;
+
+    to->parent = parent;
+    to->left = left;
+    to->right = right;
+
     
 }
 
