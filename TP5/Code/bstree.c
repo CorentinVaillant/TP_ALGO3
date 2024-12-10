@@ -16,6 +16,7 @@ struct _bstree {
 };
 
 
+
 typedef BinarySearchTree *(*AccessFunction)(const BinarySearchTree*);
 
 typedef struct {
