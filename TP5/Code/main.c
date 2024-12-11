@@ -177,6 +177,13 @@ int main(int argc, char **argv) {
         int v = read_int(input);
         printf("\n\tRemoving the value %d from the tree : \t", v);
         bstree_remove(&theTree, v);
+/*
+*/
+        //!TO REMOVE
+        #include <assert.h>
+        assert(!bstree_search(theTree,v));
+
+        //!TO REMOVE
 
         char filename[256];
         sprintf(filename, "thetree-%d.dot", i + 1);
