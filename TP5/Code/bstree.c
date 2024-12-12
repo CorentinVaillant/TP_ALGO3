@@ -15,8 +15,6 @@ struct _bstree {
     int key;
 };
 
-
-
 typedef BinarySearchTree *(*AccessFunction)(const BinarySearchTree*);
 
 typedef struct {
@@ -24,6 +22,8 @@ typedef struct {
     AccessFunction first_op;
     AccessFunction second_op;
 }ChildAccessors;
+
+
 /*------------------------  Util funcs  -----------------------------*/
 
 BinarySearchTree* find_next(const BinarySearchTree* x, ChildAccessors access){
@@ -189,117 +189,64 @@ const BinarySearchTree* bstree_predecessor(const BinarySearchTree* x) {
     return find_next(x,access);
 }
 
-void bstree_swap_nodes(ptrBinarySearchTree* tree, ptrBinarySearchTree from, ptrBinarySearchTree to) {
+void bstree_swap_nodes(ptrBinarySearchTree *tree, ptrBinarySearchTree from, ptrBinarySearchTree to) {
     assert(!bstree_empty(*tree) && !bstree_empty(from) && !bstree_empty(to));
 
-    if (from == to) {
-        return; // No need to swap if the nodes are the same
-    }
+    BinarySearchTree *temp = from->parent;
+    from->parent = to->parent;
+    to->parent = temp;
 
-    ptrBinarySearchTree from_parent = from->parent;
-    ptrBinarySearchTree to_parent = to->parent;
-
-    // Handle the root case
-    if (*tree == from) {
-        *tree = to;
-    } else if (*tree == to) {
+    if (from->parent) {
+        if (from->parent->left == to) from->parent->left = from;
+        else from->parent->right = from;
+    } else {
         *tree = from;
     }
 
-    // Swap the parent pointers
-    if (from_parent) {
-        if (from_parent->left == from) {
-            from_parent->left = to;
-        } else {
-            from_parent->right = to;
-        }
+    if (to->parent) {
+        if (to->parent->left == from) to->parent->left = to;
+        else to->parent->right = to;
+    } else {
+        *tree = to;
     }
 
-    if (to_parent) {
-        if (to_parent->left == to) {
-            to_parent->left = from;
-        } else {
-            to_parent->right = from;
-        }
-    }
+    BinarySearchTree *tmpLeft = from->left;
+    BinarySearchTree *tmpRight = from->right;
+    from->left = to->left;
+    from->right = to->right;
+    to->left = tmpLeft;
+    to->right = tmpRight;
 
-    // Swap the children pointers
-    ptrBinarySearchTree from_left = from->left;
-    ptrBinarySearchTree from_right = from->right;
-    ptrBinarySearchTree to_left = to->left;
-    ptrBinarySearchTree to_right = to->right;
-
-    from->left = to_left;
     if (from->left) from->left->parent = from;
-
-    from->right = to_right;
     if (from->right) from->right->parent = from;
-
-    to->left = from_left;
     if (to->left) to->left->parent = to;
-
-    to->right = from_right;
     if (to->right) to->right->parent = to;
-
-    // Swap the parent pointers of 'from' and 'to'
-    from->parent = to_parent;
-    to->parent = from_parent;
 }
-
 
 // t -> the tree to remove from, current -> the node to remove
-void bstree_remove_node(ptrBinarySearchTree* t, ptrBinarySearchTree node) {
-    assert(!bstree_empty(*t) && !bstree_empty(node));
+void bstree_remove_node(ptrBinarySearchTree *t, ptrBinarySearchTree current) {
+    assert(!bstree_empty(*t) && !bstree_empty(current));
 
-    BinarySearchTree **m;
-
-    // Identify the link to modify
-    if (!node->parent) {
-        m = t;  // Node is the root
-    } else if (node->parent->left == node) {
-        m = &(node->parent->left);
-    } else {
-        m = &(node->parent->right);
+    ptrBinarySearchTree d;
+    if (!current->left && !current->right) d = NULL;
+    else if (!current->left) d = current->right;
+    else if (!current->right) d = current->left;
+    else {
+        ptrBinarySearchTree succ = (ptrBinarySearchTree)bstree_successor(current);
+        bstree_swap_nodes(t, current, succ);
+        d = current->right;
     }
 
-    // Handle internal node with two children
-    if (node->left && node->right) {
-        printf("swappin !");
-        BinarySearchTree *successor = (BinarySearchTree *) bstree_successor(node);
-        bstree_swap_nodes(t, node, successor);
+    if (d != NULL) {
+        d->parent = current->parent;
     }
 
-    // printf("Left:");
-    // if(node->left) printf("%d",node->left->key ); else printf("\\");
-    // printf("|Right:");
-    // if(node->right)printf("%d",node->right->key); else printf("\\");
-    // printf("\n");
+    if (!current->parent) *t = d;
+    else if (current->parent->left == current) current->parent->left = d;
+    else current->parent->right = d;
 
-    // Handle leaf node or single-child node
-    if (!node->left) {
-        *m = node->right;
-    } else {
-        *m = node->left;
-    }
-
-    if (*m) {
-        // printf("m->value = %d\n",(*m)->key);
-        (*m)->parent = node->parent;
-
-        if(node->parent && node->parent->left ==node) 
-            node->parent->left = *m;
-        
-        if(node->parent && node->parent->right==node) 
-            node->parent->right = *m;
-
-
-    }
-
-
-    // Delete the node
-    //! bstree_delete(&node);
+    free(current);
 }
-
 void bstree_remove(ptrBinarySearchTree* t, int v) {
     ptrBinarySearchTree current = (ptrBinarySearchTree)bstree_search(*t,v);
 
@@ -388,20 +335,38 @@ struct _BSTreeIterator {
 
 /* minimum element of the collection */
 const BinarySearchTree* goto_min(const BinarySearchTree* e) {
-	(void)e;
-	return NULL;
+	while (e->left)
+        e = e->left;
+    return e;
+    
 }
 
 /* maximum element of the collection */
 const BinarySearchTree* goto_max(const BinarySearchTree* e) {
-	(void)e;
-	return NULL;
+	while (e->right)
+        e = e->right;
+    return e;
 }
 
 /* constructor */
 BSTreeIterator* bstree_iterator_create(const BinarySearchTree* collection, IteratorDirection direction) {
-	(void)collection; (void)direction;
-	return NULL;
+	BSTreeIterator * iterator = malloc(sizeof(BSTreeIterator));
+    if(!iterator){
+        fprintf(stderr, "error while allocate the memory for iterator\n");
+        perror("stopping the proram\n");
+        exit(1);
+    }
+    
+    iterator->collection = collection;
+    iterator->begin = direction == forward 
+        ? goto_min
+        : goto_max;
+
+    iterator->next = direction == forward
+        ? bstree_successor
+        : bstree_predecessor;
+    return iterator;
+
 }
 
 /* destructor */
