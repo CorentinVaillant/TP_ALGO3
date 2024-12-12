@@ -104,11 +104,19 @@ BinarySearchTree* bstree_cons(BinarySearchTree* left, BinarySearchTree* right, i
 
 void freenode(const BinarySearchTree* t, void* n) {
     (void)n;
+    ((BinarySearchTree*) t)->key=0xF0431D;
+    ((BinarySearchTree*) t)->left=NULL;
+    ((BinarySearchTree*) t)->right=NULL;
+    if(t->parent && t->parent->left == t) 
+         ((BinarySearchTree*) t)->parent->left =NULL;
+    if(t->parent && t->parent->right== t)
+         ((BinarySearchTree*) t)->parent->right=NULL;
     free((BinarySearchTree*)t);
 }
 
 void bstree_delete(ptrBinarySearchTree* t) {
     bstree_depth_postfix(*t, freenode, NULL);
+
     *t=NULL;
 }
 
@@ -245,41 +253,51 @@ void bstree_remove_node(ptrBinarySearchTree* t, ptrBinarySearchTree node) {
 
     BinarySearchTree **m;
 
-    //Identify the link to modify
-    if(!node->parent)
-        m = t;
-    else if (node->parent->left==node)
+    // Identify the link to modify
+    if (!node->parent) {
+        m = t;  // Node is the root
+    } else if (node->parent->left == node) {
         m = &(node->parent->left);
-    else
-        m = &(node->parent->right);
-
-    // Manage complete internal node 
-    if (node->left && node->right) {
-    BinarySearchTree *s;
-    s = (BinarySearchTree *) bstree_successor(node);
-        /* Permut node and successor */
-        bstree_swap_nodes(t,node,s);
-    }
-    //Leaf or single-child node
-    if ( !node->left ) {
-    *m = node->right;
-    if (*m)
-        (*m)->parent = node->parent;
     } else {
-        (*m) = node->left;
+        m = &(node->parent->right);
+    }
+
+    // Handle internal node with two children
+    if (node->left && node->right) {
+        BinarySearchTree *successor = (BinarySearchTree *) bstree_successor(node);
+        bstree_swap_nodes(t, node, successor);
+    }
+
+    // Handle leaf node or single-child node
+    if (!node->left) {
+        *m = node->right;
+    } else {
+        *m = node->left;
+    }
+
+    if (*m) {
         (*m)->parent = node->parent;
     }
 
-    //delete the node
-    bstree_delete(&node);
-
+    // Nullify the node's parent pointer before deletion
+    if(node->parent && node->parent->left ==node) 
+        node->parent->left = *m;
     
+    if(node->parent && node->parent->right==node) 
+        node->parent->right = *m;
+    node->parent->left = NULL;
+
+    // Delete the node
+    bstree_delete(&node);
 }
 
 void bstree_remove(ptrBinarySearchTree* t, int v) {
     ptrBinarySearchTree current = (ptrBinarySearchTree)bstree_search(*t,v);
 
-    bstree_remove_node(t,current);
+    if(!bstree_empty(current) && !bstree_empty(*t)){
+        bstree_remove_node(t,current);
+    }
+    //else the node does not exist
 }
 
 /*------------------------  BSTreeVisitors  -----------------------------*/
