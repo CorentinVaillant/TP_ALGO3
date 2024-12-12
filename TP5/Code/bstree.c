@@ -264,9 +264,16 @@ void bstree_remove_node(ptrBinarySearchTree* t, ptrBinarySearchTree node) {
 
     // Handle internal node with two children
     if (node->left && node->right) {
+        printf("swappin !");
         BinarySearchTree *successor = (BinarySearchTree *) bstree_successor(node);
         bstree_swap_nodes(t, node, successor);
     }
+
+    // printf("Left:");
+    // if(node->left) printf("%d",node->left->key ); else printf("\\");
+    // printf("|Right:");
+    // if(node->right)printf("%d",node->right->key); else printf("\\");
+    // printf("\n");
 
     // Handle leaf node or single-child node
     if (!node->left) {
@@ -276,19 +283,21 @@ void bstree_remove_node(ptrBinarySearchTree* t, ptrBinarySearchTree node) {
     }
 
     if (*m) {
+        // printf("m->value = %d\n",(*m)->key);
         (*m)->parent = node->parent;
+
+        if(node->parent && node->parent->left ==node) 
+            node->parent->left = *m;
+        
+        if(node->parent && node->parent->right==node) 
+            node->parent->right = *m;
+
+
     }
 
-    // Nullify the node's parent pointer before deletion
-    if(node->parent && node->parent->left ==node) 
-        node->parent->left = *m;
-    
-    if(node->parent && node->parent->right==node) 
-        node->parent->right = *m;
-    node->parent->left = NULL;
 
     // Delete the node
-    bstree_delete(&node);
+    //! bstree_delete(&node);
 }
 
 void bstree_remove(ptrBinarySearchTree* t, int v) {
@@ -352,13 +361,16 @@ void bstree_iterative_breadth(const BinarySearchTree* t, OperateFunctor f, void*
 }
 
 void bstree_iterative_depth_infix(const BinarySearchTree* t, OperateFunctor f, void* environment) {
-    while (!bstree_predecessor(t))
+    if(bstree_empty(t)) return;
+    while (!bstree_empty(bstree_predecessor(t)))
         t = bstree_predecessor(t);
 
-    while (!bstree_successor(t)){
+    if(bstree_empty(t)) return;
+    while (!bstree_empty(bstree_successor(t))){
         f(t,environment);
         t = bstree_successor(t);
     }
+    f(t,environment);
 }
 
 /*------------------------  BSTreeIterator  -----------------------------*/
