@@ -393,7 +393,7 @@ const BinarySearchTree* bstree_iterator_value(const BSTreeIterator* i) {
     return i->current;
 }
 
-/*--------------------  RedBlackTree Utils  -------------------------*/
+/*--------------------  RedBlackTree Operators  ---------------------*/
 
 void leftrotate(BinarySearchTree *x){
     assert(!bstree_empty(x)&&!bstree_empty(x->right));
@@ -452,6 +452,23 @@ void rightrotate(BinarySearchTree *y){
     if(y->right) y->right->parent = y;
 }
 
+
+BinarySearchTree* grandparent(BinarySearchTree* n){
+    return n->parent 
+        ? n->parent->parent
+        : NULL;
+}
+
+BinarySearchTree* uncle(BinarySearchTree* n){
+    return grandparent(n)
+        ?grandparent(n)->left == n->parent 
+            ?grandparent(n)->right
+            :grandparent(n)->left
+        :NULL;
+}
+/*-----------------------  RedBlackTree Test  -----------------------*/
+
+
 void testrotateleft (BinarySearchTree* t) {
     leftrotate (t) ;
 }
@@ -461,7 +478,7 @@ void testrotateright (BinarySearchTree* t) {
 
 
 
-/*------------------------  Interface  -----------------------------*/
+/*--------------------------  Interface  ---------------------------*/
 
 void bstree_node_to_dot(const BinarySearchTree* t, void* stream){
     FILE *file = (FILE *) stream;
@@ -469,7 +486,7 @@ void bstree_node_to_dot(const BinarySearchTree* t, void* stream){
     printf("%d ", bstree_key(t));
     fprintf(file, "\tn%d [label=\"{%d|{<left>|<right>}}\",style=filled, fillcolor=%s];\n",
             bstree_key(t), bstree_key(t), 
-            t->color == red ? "\"red\"" : "\"red\"");
+            t->color == red ? "\"red\"" : "\"gray\"");
 
     if (bstree_left(t)) {
         fprintf(file, "\tn%d:left:c -> n%d:n [headclip=false, tailclip=false]\n",
