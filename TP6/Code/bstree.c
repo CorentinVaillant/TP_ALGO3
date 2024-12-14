@@ -395,6 +395,12 @@ const BinarySearchTree* bstree_iterator_value(const BSTreeIterator* i) {
 
 /*--------------------  RedBlackTree Operators  ---------------------*/
 
+const NodeColor color(const BinarySearchTree *x){
+    return x && x->color == red
+        ? red
+        : black;
+}
+
 void leftrotate(BinarySearchTree *x){
     assert(!bstree_empty(x)&&!bstree_empty(x->right));
 
@@ -469,16 +475,18 @@ BinarySearchTree* uncle(BinarySearchTree* n){
 
 BinarySearchTree* fixredblack_insert_case1(BinarySearchTree* x);
 BinarySearchTree* fixredblack_insert_case2(BinarySearchTree* x);
+BinarySearchTree* fixredblack_insert_case2_left(BinarySearchTree* x);
+BinarySearchTree* fixredblack_insert_case2_right(BinarySearchTree* x);
 
 BinarySearchTree* fixredblack_insert(BinarySearchTree* x){
     if(x->parent){
-        if (x->parent->color == black)
+        if (color(x->parent) == black)
             return x;
         else
             x->parent->color = black;
     }
     else
-        if(x->color == black)
+        if(color(x) == black)
             return x;
         else
             x->color = black;
@@ -488,7 +496,7 @@ BinarySearchTree* fixredblack_insert(BinarySearchTree* x){
 BinarySearchTree* fixredblack_insert_case1(BinarySearchTree* x){
 
     //not in the case1, handling case 2
-    if(!uncle(x)||uncle(x)->color == black)
+    if(!uncle(x)||color(uncle(x)) == black)
         return fixredblack_insert_case2(x);
     
 
@@ -500,6 +508,9 @@ BinarySearchTree* fixredblack_insert_case1(BinarySearchTree* x){
     fixredblack_insert(grandparent(x));    
 }
 
+BinarySearchTree* fixredblack_insert_case2(BinarySearchTree* x){
+    
+}
 
 
 /*-----------------------  RedBlackTree Test  -----------------------*/
