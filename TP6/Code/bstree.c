@@ -466,6 +466,29 @@ BinarySearchTree* uncle(BinarySearchTree* n){
             :grandparent(n)->left
         :NULL;
 }
+
+BinarySearchTree* fixredblack_insert_case1(BinarySearchTree* x);
+BinarySearchTree* fixredblack_insert_case2(BinarySearchTree* x);
+
+BinarySearchTree* fixredblack_insert(BinarySearchTree* x){
+    if(x->parent){
+        if (x->parent->color == black)
+            return x;
+        else
+            x->parent->color = black;
+    }
+    else
+        if(x->color == black)
+            return x;
+        else
+            x->color = black;
+    return fixredblack_insert_case1(x);
+}
+
+
+
+
+
 /*-----------------------  RedBlackTree Test  -----------------------*/
 
 
