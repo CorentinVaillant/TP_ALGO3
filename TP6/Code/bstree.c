@@ -152,8 +152,8 @@ BinarySearchTree* bstree_parent(const BinarySearchTree* t) {
 /* Obligation de passer l'arbre par référence pour pouvoir le modifier */
 void bstree_add(ptrBinarySearchTree* t, int v) {
 	
-    BinarySearchTree **curr = t;
-    BinarySearchTree *par = NULL;
+    ptrBinarySearchTree *curr = t;
+    ptrBinarySearchTree par = NULL;
     while (!bstree_empty(*curr)){
         par = *curr;
         if((*curr)->key > v)
@@ -163,6 +163,11 @@ void bstree_add(ptrBinarySearchTree* t, int v) {
     }
     *curr = bstree_cons(NULL,NULL,v);
     (*curr)->parent = par;
+
+
+    BinarySearchTree* top = fixredblack_insert(*curr);
+    if(top->parent == NULL)
+        *t = top;
 }
 
 const BinarySearchTree* bstree_search(const BinarySearchTree* t, int v) {
@@ -509,6 +514,37 @@ BinarySearchTree* fixredblack_insert_case1(BinarySearchTree* x){
 }
 
 BinarySearchTree* fixredblack_insert_case2(BinarySearchTree* x){
+    if(uncle(x) && color(uncle(x)) == black){
+        if(x->parent == grandparent(x)->left)
+            fixredblack_insert_case2_left(x);
+        else
+            fixredblack_insert_case2_right(x);
+    }
+}
+
+BinarySearchTree* fixredblack_insert_case2_left(BinarySearchTree* x){
+    if(x->parent->right == x){
+        leftrotate(x->parent);
+        x = x->parent;
+    }
+
+    rightrotate(grandparent(x));
+    x->parent->color = black;
+    grandparent(x)->color = red;
+    return x;
+    
+}
+
+BinarySearchTree* fixredblack_insert_case2_right(BinarySearchTree* x){
+    if(x->parent->left == x){
+        rightrotate(x->parent);
+        x = x->parent;
+    }
+
+    leftrotate(grandparent(x));
+    x->parent->color = black;
+    grandparent(x)->color = red;
+    return x;
     
 }
 
