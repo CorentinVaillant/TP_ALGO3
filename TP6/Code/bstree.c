@@ -485,7 +485,20 @@ BinarySearchTree* fixredblack_insert(BinarySearchTree* x){
     return fixredblack_insert_case1(x);
 }
 
+BinarySearchTree* fixredblack_insert_case1(BinarySearchTree* x){
 
+    //not in the case1, handling case 2
+    if(!uncle(x)||uncle(x)->color == black)
+        return fixredblack_insert_case2(x);
+    
+
+    uncle(x)->color = black;
+    x->parent->color= black;
+    grandparent(x)->color=red;
+
+    //fixing the grandparent 
+    fixredblack_insert(grandparent(x));    
+}
 
 
 
