@@ -28,6 +28,9 @@ typedef struct {
 
 
 /*------------------------  Util funcs  -----------------------------*/
+#define nonNull(ptr) ptr ;assert(ptr != NULL);
+
+
 
 BinarySearchTree* find_next(const BinarySearchTree* x, ChildAccessors access){
     assert(!bstree_empty(x));
@@ -148,6 +151,8 @@ BinarySearchTree* bstree_parent(const BinarySearchTree* t) {
 }
 
 /*------------------------  BSTreeDictionary  -----------------------------*/
+
+BinarySearchTree *fixredblack_insert(BinarySearchTree *x);
 
 /* Obligation de passer l'arbre par référence pour pouvoir le modifier */
 void bstree_add(ptrBinarySearchTree* t, int v) {
@@ -400,7 +405,7 @@ const BinarySearchTree* bstree_iterator_value(const BSTreeIterator* i) {
 
 /*--------------------  RedBlackTree Operators  ---------------------*/
 
-const NodeColor color(const BinarySearchTree *x){
+NodeColor color(const BinarySearchTree *x){
     return x && x->color == red
         ? red
         : black;
@@ -484,66 +489,92 @@ BinarySearchTree* fixredblack_insert_case2_left(BinarySearchTree* x);
 BinarySearchTree* fixredblack_insert_case2_right(BinarySearchTree* x);
 
 BinarySearchTree* fixredblack_insert(BinarySearchTree* x){
-    if(x->parent){
-        if (color(x->parent) == black)
-            return x;
-        else
+    ptrBinarySearchTree pp = grandparent(x);
+    if(bstree_empty(pp)){
+        if(x->parent)
             x->parent->color = black;
-    }
-    else
-        if(color(x) == black)
-            return x;
         else
             x->color = black;
-    return fixredblack_insert_case1(x);
+        
+        return x;
+    }
+
+    if(color(x->parent) == red || color(x->left) == red || color(x->right) == red)
+        return fixredblack_insert_case1(x);
+    else return x;
+
+
 }
 
 BinarySearchTree* fixredblack_insert_case1(BinarySearchTree* x){
 
+    ptrBinarySearchTree f = uncle(x);
+    ptrBinarySearchTree p = nonNull(x->parent);
+    ptrBinarySearchTree pp= nonNull(grandparent(x));
+
     //not in the case1, handling case 2
-    if(!uncle(x)||color(uncle(x)) == black)
+    if(color(f) == black)
         return fixredblack_insert_case2(x);
     
-
-    uncle(x)->color = black;
-    x->parent->color= black;
-    grandparent(x)->color=red;
+    f->color = black;
+    p->color= black;
+    pp->color=red;
 
     //fixing the grandparent 
-    fixredblack_insert(grandparent(x));    
+    return fixredblack_insert(pp);    
 }
 
 BinarySearchTree* fixredblack_insert_case2(BinarySearchTree* x){
-    if(uncle(x) && color(uncle(x)) == black){
-        if(x->parent == grandparent(x)->left)
-            fixredblack_insert_case2_left(x);
-        else
-            fixredblack_insert_case2_right(x);
-    }
-}
 
-BinarySearchTree* fixredblack_insert_case2_left(BinarySearchTree* x){
-    if(x->parent->right == x){
-        leftrotate(x->parent);
-        x = x->parent;
-    }
+    ptrBinarySearchTree p = nonNull(x->parent);
+    ptrBinarySearchTree pp= nonNull(grandparent(x));
 
-    rightrotate(grandparent(x));
-    x->parent->color = black;
-    grandparent(x)->color = red;
-    return x;
+
+    if(p == pp->left)
+        return fixredblack_insert_case2_left(x);
+    else
+        return fixredblack_insert_case2_right(x);
     
 }
 
-BinarySearchTree* fixredblack_insert_case2_right(BinarySearchTree* x){
-    if(x->parent->left == x){
-        rightrotate(x->parent);
-        x = x->parent;
-    }
+BinarySearchTree* fixredblack_insert_case2_left(BinarySearchTree* x){
+    ptrBinarySearchTree p = nonNull(x->parent);
+    ptrBinarySearchTree pp= nonNull(grandparent(x)); //?
 
-    leftrotate(grandparent(x));
-    x->parent->color = black;
-    grandparent(x)->color = red;
+    if(p->left == x){
+        rightrotate(pp);
+        p->color = black;
+        pp->color = red;
+        
+    }
+    else{
+        leftrotate(p);
+
+        rightrotate(pp);
+        x->color = black;
+        pp->color = red;
+
+    }
+    return x;
+}
+
+BinarySearchTree* fixredblack_insert_case2_right(BinarySearchTree* x){
+    ptrBinarySearchTree p = nonNull(x->parent);
+    ptrBinarySearchTree pp= nonNull(grandparent(x));
+
+    if(p->right == x){
+        leftrotate(pp);
+        p->color = black;
+        pp->color = red;
+    }
+    else{
+        rightrotate(p);
+
+
+        leftrotate(pp);
+        x->color = black;
+        pp->color = red;
+    }
     return x;
     
 }
