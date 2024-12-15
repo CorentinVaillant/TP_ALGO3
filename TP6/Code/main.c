@@ -11,7 +11,7 @@
 /* Define this for solving the exercice 3. - fix rb property after add*/
 #define EXERCICE_3
 /* Define this for solving the exercice 4. - nothing to do, just to verify that search is still operational */
-//#define EXERCICE_4
+#define EXERCICE_4
 /* Define this for solving the exercice 5. - fix rb property after remove */
 //#define EXERCICE_5
 
