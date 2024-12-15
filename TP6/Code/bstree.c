@@ -200,7 +200,7 @@ const BinarySearchTree* bstree_predecessor(const BinarySearchTree* x) {
 }
 
 void bstree_swap_nodes(ptrBinarySearchTree *tree, ptrBinarySearchTree from, ptrBinarySearchTree to) {
-    /*léo t'es moche */
+    /*énorme ratio L bozo */
     assert(!bstree_empty(*tree) && !bstree_empty(from) && !bstree_empty(to));
 
     BinarySearchTree *temp = from->parent;
