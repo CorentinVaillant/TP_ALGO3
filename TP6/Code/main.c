@@ -13,7 +13,7 @@
 /* Define this for solving the exercice 4. - nothing to do, just to verify that search is still operational */
 #define EXERCICE_4
 /* Define this for solving the exercice 5. - fix rb property after remove */
-//#define EXERCICE_5
+#define EXERCICE_5
 
 
 #ifdef EXERCICE_3

@@ -262,13 +262,13 @@ void bstree_remove_node(ptrBinarySearchTree *t, ptrBinarySearchTree current) {
     ptrBinarySearchTree substitute = m;
 
     /* fix the redblack properties if needed */
-    if (color(current) == black){
+    if (current->color == black){
         if ((substitute == NULL) || (substitute->color == black)){
 
             /* substitute is double black : must fix */
             ptrBinarySearchTree subtreeroot = fixredblack_remove (current->parent,substitute);
 
-            if ( subtreeroot->parent == NULL )
+            if (subtreeroot->parent == NULL) //!tofix subroot = NULL
                 *t = subtreeroot ;
         }else 
             /* substitute becomes black */
@@ -380,7 +380,7 @@ BinarySearchTree* fixredblack_insert_case2(BinarySearchTree* x);
 BinarySearchTree* fixredblack_insert_case2_left(BinarySearchTree* x);
 BinarySearchTree* fixredblack_insert_case2_right(BinarySearchTree* x);
 
-//Léo, sache que si tu touche a ce code, j'aurais moi même le droit de te toucher très fort
+//@Yolwoocle, sache que si tu touche a ce code, j'aurais moi même le droit de te toucher très fort
 //Cela m'embête un peu que tu tombe vite dans la facilité de piquer mon code, je suis dans le même cas que toi, j'y passe beaucoup trop de temps aussi
 //Essaie au moins de refacto des trucs pour pas que cela soit cramer stp.
 BinarySearchTree* fixredblack_insert(BinarySearchTree* x){
@@ -486,7 +486,7 @@ ptrBinarySearchTree fixredblack_remove(ptrBinarySearchTree p, ptrBinarySearchTre
     if(color(sibling(x)) == black)
         return fixredblack_remove_case1(p,x);
     else 
-        return fixredblack_remove_case2(p);
+        return fixredblack_remove_case2(p,x);
 }
 
 BinarySearchTree* fixredblack_remove_case1(BinarySearchTree* p, BinarySearchTree* x){
@@ -502,7 +502,7 @@ BinarySearchTree* fixredblack_remove_case1_left(BinarySearchTree* p){
 
     if(color(g) == black && color(d) == black){ //? not sure that f is not NULL ? 
         f->color = red;
-        fixredblack_remove(p->parent,p); //...
+        return fixredblack_remove(p->parent,p); //...
     }
     else if(color(d) == red){
         leftrotate(p);
@@ -527,7 +527,7 @@ BinarySearchTree* fixredblack_remove_case1_right(BinarySearchTree* p){
 
     if(color(g) == black && color(d) == black){ //? not sure that f is not NULL ? 
         f->color = red;
-        fixredblack_remove(p->parent,p); //...
+        return fixredblack_remove(p->parent,p); //...
     }
     else if(color(g) == red){
         rightrotate(p);
@@ -557,14 +557,14 @@ BinarySearchTree* fixredblack_remove_case2_left(BinarySearchTree* p){
     leftrotate(p);
     p->color = red;
     f->color = black;
-    fixredblack_remove(p,p->left);
+    return fixredblack_remove(p,p->left);
 }
 BinarySearchTree* fixredblack_remove_case2_right(BinarySearchTree* p){
     ptrBinarySearchTree f = p->left; //red
     rightrotate(p);
     p->color = red;
     f->color = black;
-    fixredblack_remove(p,p->right);
+    return fixredblack_remove(p,p->right);
 }
 
 /*------------------------  BSTreeVisitors  -----------------------------*/
