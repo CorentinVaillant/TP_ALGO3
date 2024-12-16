@@ -156,21 +156,25 @@ BinarySearchTree *fixredblack_insert(BinarySearchTree *x);
 
 /* Obligation de passer l'arbre par référence pour pouvoir le modifier */
 void bstree_add(ptrBinarySearchTree* t, int v) {
+    fflush(stdout);
 	
     ptrBinarySearchTree *curr = t;
     ptrBinarySearchTree par = NULL;
     while (!bstree_empty(*curr)){
+
+        if (v == (*curr)->key) return;
+
         par = *curr;
         if((*curr)->key > v)
             curr = &((*curr)-> left);
         else 
             curr = &((*curr)->right);
     }
+
     *curr = bstree_cons(NULL,NULL,v);
     (*curr)->parent = par;
 
-
-    BinarySearchTree* top = fixredblack_insert(*curr);
+    ptrBinarySearchTree top = fixredblack_insert(*curr);
     if(top->parent == NULL)
         *t = top;
 }
@@ -238,8 +242,7 @@ ptrBinarySearchTree fixredblack_remove(ptrBinarySearchTree p, ptrBinarySearchTre
 
 // t -> the tree to remove from, current -> the node to remove
 void bstree_remove_node(ptrBinarySearchTree *t, ptrBinarySearchTree current) {
-    assert(!bstree_empty(*t) && !bstree_empty(current));
-
+    
     ptrBinarySearchTree sub;
     if (!current->left && !current->right) sub = NULL;
     else if (!current->left) sub = current->right;
@@ -250,14 +253,15 @@ void bstree_remove_node(ptrBinarySearchTree *t, ptrBinarySearchTree current) {
         sub = current->right;
     }
 
-    if (sub != NULL) sub->parent = current->parent;
-    
+    if (sub != NULL) {
+        sub->parent = current->parent;
+    }
 
     if (!current->parent) *t = sub;
     else if (current->parent->left == current) current->parent->left = sub;
     else current->parent->right = sub;
 
-/*------fixing the tree------*/
+// /*------fixing the tree------*/
 
 
     /* fix the redblack properties if needed */
@@ -284,7 +288,9 @@ void bstree_remove(ptrBinarySearchTree* t, int v) {
     if(!bstree_empty(current) && !bstree_empty(*t)){
         bstree_remove_node(t,current);
     }
-    //else the node does not exist
+    else{
+        printf("the node %d does not exist in the tree\t",v);
+    }
 }
 
 
@@ -380,93 +386,79 @@ BinarySearchTree* fixredblack_insert_case2_right(BinarySearchTree* x);
 //@Yolwoocle, sache que si tu touche a ce code, j'aurais moi même le droit de te toucher très fort
 //Cela m'embête un peu que tu tombe vite dans la facilité de piquer mon code, je suis dans le même cas que toi, j'y passe beaucoup trop de temps aussi
 //Essaie au moins de refacto des trucs pour pas que cela soit cramer stp.
-BinarySearchTree* fixredblack_insert(BinarySearchTree* x){
-    ptrBinarySearchTree pp = grandparent(x);
-    if(bstree_empty(pp)){
-        if(x->parent)
-            x->parent->color = black;
-        else
-            x->color = black;
-        
+BinarySearchTree* fixredblack_insert(BinarySearchTree* x) {
+    if (x->parent == NULL) {
+        // Case 0
+        x->color = black; 
         return x;
     }
 
-    if(color(x->parent) == red || color(x->left) == red || color(x->right) == red)
-        return fixredblack_insert_case1(x);
-    else return x;
+    ptrBinarySearchTree p = x->parent;
 
-
+    if (color(p) == black) 
+        return x;
+    
+    // Case 1 or Cases 2
+    return fixredblack_insert_case1(x);
 }
 
-BinarySearchTree* fixredblack_insert_case1(BinarySearchTree* x){
-
+BinarySearchTree* fixredblack_insert_case1(BinarySearchTree* x) {
+    ptrBinarySearchTree p = x->parent;
+    ptrBinarySearchTree pp = grandparent(x);
     ptrBinarySearchTree f = uncle(x);
-    ptrBinarySearchTree p = nonNull(x->parent);
-    ptrBinarySearchTree pp= nonNull(grandparent(x));
 
-    //not in the case1, handling case 2
-    if(color(f) == black)
+    if (f != NULL && color(f) == red) {
+        p->color = black;
+        f->color = black;
+        pp->color = red;
+        return fixredblack_insert(pp);
+    } else {
+        //case 2
         return fixredblack_insert_case2(x);
-    
-    f->color = black;
-    p->color= black;
-    pp->color=red;
-
-    //fixing the grandparent 
-    return fixredblack_insert(pp);    
+    }
 }
-BinarySearchTree* fixredblack_insert_case2(BinarySearchTree* x){
 
-    ptrBinarySearchTree p = nonNull(x->parent);
-    ptrBinarySearchTree pp= nonNull(grandparent(x));
+BinarySearchTree* fixredblack_insert_case2(BinarySearchTree* x) {
+    ptrBinarySearchTree p = x->parent;
+    ptrBinarySearchTree pp = grandparent(x);
 
-
-    if(p == pp->left)
+    if (p == pp->left) {
+        if (x == p->right) {
+            leftrotate(p);
+            x = p;
+        }
         return fixredblack_insert_case2_left(x);
-    else
+    } else {
+        if (x == p->left) {
+            rightrotate(p);
+            x = p;
+        }
         return fixredblack_insert_case2_right(x);
-    
+    }
 }
-BinarySearchTree* fixredblack_insert_case2_left(BinarySearchTree* x){
-    ptrBinarySearchTree p = nonNull(x->parent);
-    ptrBinarySearchTree pp= nonNull(grandparent(x)); //?
 
-    if(p->left == x){
-        rightrotate(pp);
-        p->color = black;
-        pp->color = red;
-        
-    }
-    else{
-        leftrotate(p);
+BinarySearchTree* fixredblack_insert_case2_left(BinarySearchTree* x) {
+    ptrBinarySearchTree p = x->parent;
+    ptrBinarySearchTree pp = grandparent(x);
 
-        rightrotate(pp);
-        x->color = black;
-        pp->color = red;
+    rightrotate(pp);
+    p->color = black;
+    pp->color = red;
 
-    }
-    return x;
+    return p;
 }
-BinarySearchTree* fixredblack_insert_case2_right(BinarySearchTree* x){
-    ptrBinarySearchTree p = nonNull(x->parent);
-    ptrBinarySearchTree pp= nonNull(grandparent(x));
 
-    if(p->right == x){
-        leftrotate(pp);
-        p->color = black;
-        pp->color = red;
-    }
-    else{
-        rightrotate(p);
+BinarySearchTree* fixredblack_insert_case2_right(BinarySearchTree* x) {
+    ptrBinarySearchTree p = x->parent;
+    ptrBinarySearchTree pp = grandparent(x);
 
+    leftrotate(pp);
+    p->color = black;
+    pp->color = red;
 
-        leftrotate(pp);
-        x->color = black;
-        pp->color = red;
-    }
-    return x;
-    
+    return p;
 }
+
 
 
 BinarySearchTree* fixredblack_remove_case1(BinarySearchTree* p, BinarySearchTree* x);

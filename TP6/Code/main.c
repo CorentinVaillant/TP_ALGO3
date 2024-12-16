@@ -183,7 +183,6 @@ int main(int argc, char **argv) {
     for (int i = 0; i < n; ++i) {
         int v = read_int(input);
         printf("\n\tRemoving the value %d from the tree : \t", v);
-        fflush(stdout);//!toremove
         bstree_remove(&theTree, v);
 
         char filename[256];
