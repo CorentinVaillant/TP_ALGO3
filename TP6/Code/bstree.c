@@ -43,9 +43,6 @@ BinarySearchTree* find_next(const BinarySearchTree* x, ChildAccessors access){
     return curr;
 }
 
-bool bstree_is_leaf(const BinarySearchTree* x){
-    return !(x->left) && !(x->right);
-}
 
 BinarySearchTree* bstree_right_then_diving_left(const BinarySearchTree* x){
     BinarySearchTree *curr;
@@ -288,9 +285,7 @@ void bstree_remove(ptrBinarySearchTree* t, int v) {
     if(!bstree_empty(current) && !bstree_empty(*t)){
         bstree_remove_node(t,current);
     }
-    else{
-        printf("the node %d does not exist in the tree\t",v);
-    }
+    //else the node is node in the tree
 }
 
 
@@ -486,7 +481,7 @@ BinarySearchTree* fixredblack_remove_case1(BinarySearchTree* p, BinarySearchTree
     else
         return fixredblack_remove_case1_right(p);
 }
-BinarySearchTree* fixredblack_remove_case1_left(BinarySearchTree* p){
+BinarySearchTree* fixredblack_remove_case1_left(BinarySearchTree* p){//!fixme
     ptrBinarySearchTree x = p->left ;
     ptrBinarySearchTree f = p->right;
     if (bstree_empty(f))
@@ -495,6 +490,7 @@ BinarySearchTree* fixredblack_remove_case1_left(BinarySearchTree* p){
     ptrBinarySearchTree g = f->left ;
     ptrBinarySearchTree d = f->right;
 
+    
     if (color(g)==black && color(d) == black) {
         if (x) x->color = black;
         f->color = red;
@@ -524,11 +520,12 @@ BinarySearchTree* fixredblack_remove_case1_left(BinarySearchTree* p){
         return fixredblack_remove(p,x);
     }
 }
-BinarySearchTree* fixredblack_remove_case1_right(BinarySearchTree* p){
-    ptrBinarySearchTree x = p->right;
-    ptrBinarySearchTree f = p->left ;
+BinarySearchTree* fixredblack_remove_case1_right(BinarySearchTree* p){//!fixme
+    ptrBinarySearchTree x = p->left ;
+    ptrBinarySearchTree f = p->right;
     if (bstree_empty(f))
         return fixredblack_remove(p->parent, p);
+
     ptrBinarySearchTree g = f->left ;
     ptrBinarySearchTree d = f->right;
 
@@ -574,14 +571,14 @@ BinarySearchTree* fixredblack_remove_case2_left(BinarySearchTree* p){
     leftrotate(p);
     p->color = red;
     f->color = black;
-    return fixredblack_remove_case1(p,p->left);
+    return fixredblack_remove(p,p->left);
 }
 BinarySearchTree* fixredblack_remove_case2_right(BinarySearchTree* p){
     ptrBinarySearchTree f = p->left; assert(color(f) == red);
     rightrotate(p);
     p->color = red;
     f->color = black;
-    return fixredblack_remove_case1(p,p->right);
+    return fixredblack_remove(p,p->right);
 }
 
 /*------------------------  BSTreeVisitors  -----------------------------*/
